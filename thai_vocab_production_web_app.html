@@ -1,0 +1,2388 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Thai Vocab - Dual-Font Flashcard Mastery</title>
+
+  <!-- iOS / PWA Mobile Standalone Optimization -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Thai Vocab">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#FFF5F7">
+
+  <!-- Google Fonts: Sarabun (Traditional Looped), Kanit (Modern Loopless), and Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Kanit:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Tailwind CSS Engine -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            thaiLoop: ['Sarabun', 'sans-serif'],
+            thaiModern: ['Kanit', 'sans-serif'],
+          },
+          colors: {
+            pastel: {
+              rose: '#FFF5F7',
+              pink: '#FFEBF1',
+              blue: '#EBF9FF',
+              purple: '#F5EFFF',
+              amber: '#FFF8EB',
+              mint: '#EBFBF5'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Production Mobile Styling & Zero-Scroll Architecture -->
+  <style>
+    /* Strict Zero-Scroll and Responsive Mobile Lock */
+    * {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      box-sizing: border-box;
+      touch-action: manipulation;
+    }
+    input, textarea {
+      user-select: text;
+    }
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      max-height: 100dvh;
+      overflow: hidden;
+      background: linear-gradient(145deg, #FFF5F7 0%, #F5F3FF 50%, #EBF9FF 100%);
+    }
+
+    /* Mobile Safe Area Inset Support (Notch & Home Bar) */
+    body {
+      padding-top: max(0.375rem, env(safe-area-inset-top));
+      padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+      padding-left: max(0.5rem, env(safe-area-inset-left));
+      padding-right: max(0.5rem, env(safe-area-inset-right));
+    }
+
+    /* 3D Perspective Flip Engine */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+    .flip-card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.45s cubic-bezier(0.34, 1.3, 0.64, 1);
+      transform-style: preserve-3d;
+    }
+    .flip-card-inner.is-flipped {
+      transform: rotateY(180deg);
+    }
+    .card-face {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      overflow: hidden;
+    }
+    .card-face-back {
+      transform: rotateY(180deg);
+    }
+
+    /* Scrollbar Aesthetics */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body class="h-[100dvh] max-h-[100dvh] flex flex-col items-center justify-between text-slate-800 font-sans select-none">
+
+  <!-- Master Application Container -->
+  <div id="app" class="w-full max-w-md h-full flex flex-col justify-between overflow-hidden relative px-1">
+
+    <!-- TOP HEADER & CONTROLS -->
+    <header class="w-full flex items-center justify-between gap-1 sm:gap-2 pt-0.5 pb-1 flex-shrink-0">
+      <!-- Title & Counter Block (Left Aligned) -->
+      <div class="flex flex-col text-left leading-tight min-w-0 pr-1">
+        <div class="flex items-center gap-1.5">
+          <span class="tracking-wider bg-gradient-to-r from-pink-500 via-rose-500 to-indigo-600 bg-clip-text text-transparent text-base sm:text-lg font-black uppercase">THAI</span>
+          <h1 class="text-base sm:text-lg font-black bg-gradient-to-r from-pink-500 via-rose-500 to-indigo-600 bg-clip-text text-transparent tracking-tight">Vocab</h1>
+        </div>
+        <div class="flex items-center gap-1.5 text-[10px] text-slate-500 whitespace-nowrap mt-0.5">
+          <span id="vocabCounterText">Total 0 Vocabs</span>
+          <span class="text-slate-300">•</span>
+          <span id="cloudStatusIndicator" class="flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span>
+            <span class="text-[9px] text-amber-500 font-medium">Connecting</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Header Action Controls -->
+      <div class="flex items-center gap-1 sm:gap-1.5 flex-nowrap flex-shrink-0">
+        <!-- Voice & Speed Control Popover -->
+        <div class="relative">
+          <button id="voiceBtn" title="Voice & Speed Settings" class="h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl bg-white/90 border border-slate-200 shadow-sm hover:bg-slate-50 active:scale-95 transition-all flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+            <i class="fa-solid fa-volume-high text-[11px] text-indigo-500" id="voiceHeaderIcon"></i>
+            <span id="voiceSpeedBadge" class="text-[10px] font-bold text-slate-600">1.0x</span>
+          </button>
+
+          <!-- Voice Popover Panel -->
+          <div id="voicePopover" class="hidden absolute top-full left-0 mt-1.5 w-64 p-3 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-slate-200 z-50 transition-all text-xs">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-2.5">
+              <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                <i class="fa-solid fa-sliders text-indigo-500"></i> Speech Audio
+              </span>
+              <button id="muteToggleBtn" class="px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-600">
+                <i class="fa-solid fa-volume-high mr-1"></i> Sound On
+              </button>
+            </div>
+
+            <!-- Voice Profile Selector -->
+            <div class="mb-2.5">
+              <label class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Voice Profile</label>
+              <div class="grid grid-cols-2 gap-1" id="voicePresetGroup">
+                <button data-voice="female" class="voice-preset-btn px-2 py-1 rounded-lg border text-[11px] font-medium bg-pink-50 border-pink-300 text-pink-700 text-left">
+                  <i class="fa-solid fa-venus mr-1 text-pink-500"></i> Female
+                </button>
+                <button data-voice="male" class="voice-preset-btn px-2 py-1 rounded-lg border text-[11px] font-medium bg-slate-50 border-slate-200 text-slate-600 text-left">
+                  <i class="fa-solid fa-mars mr-1 text-indigo-500"></i> Male
+                </button>
+                <button data-voice="natural" class="voice-preset-btn px-2 py-1 rounded-lg border text-[11px] font-medium bg-slate-50 border-slate-200 text-slate-600 text-left">
+                  <i class="fa-solid fa-mobile-screen mr-1 text-teal-500"></i> Device ♀
+                </button>
+                <button data-voice="deep" class="voice-preset-btn px-2 py-1 rounded-lg border text-[11px] font-medium bg-slate-50 border-slate-200 text-slate-600 text-left">
+                  <i class="fa-solid fa-podcast mr-1 text-amber-500"></i> Deep ♂
+                </button>
+              </div>
+            </div>
+
+            <!-- Speech Rate Slider -->
+            <div class="mb-2">
+              <div class="flex items-center justify-between text-[11px] mb-1">
+                <span class="text-slate-500 font-medium">Speed</span>
+                <span id="popoverSpeedDisplay" class="font-bold text-indigo-600">1.0x</span>
+              </div>
+              <input id="speechRateSlider" type="range" min="0.5" max="1.5" step="0.1" value="1.0" class="w-full accent-indigo-500 h-1.5 bg-slate-200 rounded-lg cursor-pointer">
+            </div>
+
+            <!-- Quick Rate Presets -->
+            <div class="flex items-center justify-between gap-1 pt-1">
+              <button data-rate="0.6" class="quick-rate-btn flex-1 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[10px] font-bold text-slate-600">0.6x</button>
+              <button data-rate="0.8" class="quick-rate-btn flex-1 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[10px] font-bold text-slate-600">0.8x</button>
+              <button data-rate="1.0" class="quick-rate-btn flex-1 py-0.5 rounded bg-indigo-50 border border-indigo-200 text-[10px] font-bold text-indigo-600">1.0x</button>
+              <button data-rate="1.2" class="quick-rate-btn flex-1 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-[10px] font-bold text-slate-600">1.2x</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visual On / Off Toggle -->
+        <button id="visualToggleBtn" title="Toggle Card Visuals" class="h-8 sm:h-9 w-8 sm:w-9 rounded-xl bg-white/90 border border-slate-200 shadow-sm hover:bg-slate-50 active:scale-95 transition-all flex items-center justify-center text-slate-700">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3" ry="3"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <polyline points="21 15 16 10 5 21"/>
+            <line id="visualSlashLine" x1="2" y1="2" x2="22" y2="22" class="stroke-rose-500 stroke-[2.5] hidden"/>
+          </svg>
+        </button>
+
+        <!-- Front / Back Face Orientation Toggle -->
+        <button id="defaultFaceBtn" title="Default Face Orientation" class="h-8 sm:h-9 px-2 rounded-xl bg-white/90 border border-slate-200 shadow-sm hover:bg-slate-50 active:scale-95 transition-all flex items-center gap-1 text-[11px] font-bold text-slate-700">
+          <i class="fa-solid fa-arrows-rotate text-[10px] text-pink-500"></i>
+          <span id="defaultFaceText">Front</span>
+        </button>
+
+        <!-- Undo Action Button -->
+        <button id="undoActionBtn" title="Undo deleted item (Ctrl+Z)" class="hidden h-8 sm:h-9 px-2 rounded-xl bg-amber-50 border border-amber-300 shadow-sm hover:bg-amber-100 active:scale-95 transition-all items-center gap-1 text-[11px] font-bold text-amber-700 animate-pulse">
+          <i class="fa-solid fa-rotate-left text-[10px]"></i>
+          <span>Undo</span>
+        </button>
+
+        <!-- Vocabulary Manager Modal Open -->
+        <button id="openManagerBtn" title="Manage Vocabulary & Categories" class="h-8 sm:h-9 w-8 sm:w-9 rounded-xl bg-white/90 border border-slate-200 shadow-sm hover:bg-slate-50 active:scale-95 transition-all flex items-center justify-center text-slate-700">
+          <i class="fa-solid fa-list-check text-xs text-indigo-600"></i>
+        </button>
+
+        <!-- Quick Add Word Button -->
+        <button id="openAddBtn" title="Add Vocabulary" class="h-8 sm:h-9 w-8 sm:w-9 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-black text-sm shadow-md shadow-pink-200 hover:from-pink-600 hover:to-rose-600 active:scale-95 transition-all flex items-center justify-center">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- CATEGORY FILTER BAR -->
+    <div class="w-full flex items-center gap-1.5 py-0.5 flex-shrink-0">
+      <!-- Multi-Category Filter Trigger -->
+      <button id="multiCatFilterBtn" title="Filter Multiple Categories" class="h-7 px-2 rounded-lg bg-white/90 border border-slate-200 shadow-sm text-slate-700 hover:bg-slate-50 active:scale-95 transition-all flex items-center gap-1 text-[11px] font-semibold relative flex-shrink-0">
+        <i class="fa-solid fa-tags text-[10px] text-indigo-500"></i>
+        <span id="multiCatBadge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-pink-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">0</span>
+      </button>
+
+      <!-- Scrollable Category Pill Buttons -->
+      <div id="categoryPillList" class="flex-1 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+        <button data-cat="all" class="cat-pill active-pill px-3 py-1 rounded-full text-xs font-bold transition-all shadow-sm flex-shrink-0 bg-indigo-600 text-white">
+          All
+        </button>
+      </div>
+    </div>
+
+    <!-- 3D DUAL-FONT FLASHCARD MAIN STAGE -->
+    <main class="w-full flex-1 min-h-0 py-1 flex flex-col items-center justify-center perspective-1000">
+      <div id="flashcardInner" class="flip-card-inner rounded-3xl shadow-xl border border-white/80 cursor-pointer">
+
+        <!-- CARD FRONT: Dual Thai Script + Visual Frame -->
+        <div id="cardFaceFront" class="card-face bg-gradient-to-b from-white/95 to-pastel-rose/70 backdrop-blur-sm rounded-3xl p-3 sm:p-4 flex flex-col justify-between items-center text-center">
+          <!-- Top Row -->
+          <div class="w-full flex items-center justify-between text-[11px] text-slate-400">
+            <span id="frontCatBadge" class="px-2.5 py-0.5 rounded-full bg-pink-100/90 text-pink-700 font-bold text-[10px] uppercase tracking-wider">
+              Connecting...
+            </span>
+            <div class="flex items-center gap-2">
+              <button id="cardDirectEditBtnFront" title="Edit this card" class="px-2 py-0.5 rounded-lg bg-white/90 border border-slate-200 text-slate-600 hover:text-pink-600 font-bold text-[10px] shadow-2xs flex items-center gap-1 transition-all">
+                <i class="fa-solid fa-pen text-[9px]"></i> Edit
+              </button>
+              <span class="flex items-center gap-1 text-slate-400 text-[10px]">
+                <i class="fa-solid fa-repeat text-[9px]"></i> Tap to flip
+              </span>
+            </div>
+          </div>
+
+          <!-- Adaptive Visual Container -->
+          <div id="cardVisualContainer" class="relative my-auto max-w-[220px] sm:max-w-[260px] max-h-[20dvh] sm:max-h-32 rounded-2xl overflow-hidden shadow-md border-2 border-white bg-slate-100/90 flex items-center justify-center flex-shrink-0 group">
+            <img id="cardFrontImg" src="https://static.thenounproject.com/png/3674270-200.png" alt="Vocab Visual" class="max-h-[20dvh] sm:max-h-32 max-w-full w-auto h-auto object-contain block" onerror="this.src='https://static.thenounproject.com/png/3674270-200.png';">
+            <!-- Quick Edit Overlay Button -->
+            <button id="editPhotoDirectBtn" title="Change Image URL" class="absolute bottom-1.5 right-1.5 px-2 py-0.5 rounded-lg bg-black/60 hover:bg-black/80 text-white text-[10px] font-bold backdrop-blur-xs flex items-center gap-1 transition-all z-10">
+              <i class="fa-solid fa-camera text-[9px]"></i> Edit
+            </button>
+          </div>
+
+          <!-- Dual-Font Script Display Section -->
+          <div id="dualFontWrapper" class="w-full my-auto flex flex-col items-center justify-center py-0.5">
+            <!-- Traditional Thai Script (Sarabun - Looped) -->
+            <div class="w-full px-2 py-0.5">
+              <h2 id="thaiScriptLooped" class="font-thaiLoop font-bold text-2xl sm:text-3xl text-slate-800 tracking-normal leading-relaxed break-words">
+                Connecting...
+              </h2>
+            </div>
+
+            <!-- Pink Divider Line -->
+            <div class="w-24 sm:w-28 h-0.5 bg-gradient-to-r from-transparent via-pink-400 to-transparent my-1"></div>
+
+            <!-- Modern Loopless Thai Script (Kanit) -->
+            <div class="w-full px-2">
+              <p id="thaiScriptModern" class="font-thaiModern font-semibold text-xl sm:text-2xl text-slate-600 tracking-wide break-words">
+                Connecting...
+              </p>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Mastery Level -->
+          <div class="w-full flex items-center justify-between text-[11px] pt-1 border-t border-slate-100/80">
+            <button id="frontMasteryBadge" title="Click to edit level" class="flex items-center gap-1 font-bold text-[10px] text-slate-600 px-2 py-0.5 rounded-lg bg-white/80 border border-slate-200 hover:bg-slate-100 transition-all">
+              <span id="frontMasteryEmoji">⚪</span>
+              <span id="frontMasteryText">Unrated</span>
+            </button>
+            <span class="text-[10px] text-pink-500 font-semibold flex items-center gap-1">
+              <i class="fa-solid fa-volume-high text-[9px]"></i> Thai (th-TH)
+            </span>
+          </div>
+        </div>
+
+        <!-- CARD BACK: Clean Meaning Face -->
+        <div id="cardFaceBack" class="card-face card-face-back bg-gradient-to-b from-white/95 to-pastel-blue/80 backdrop-blur-sm rounded-3xl p-3.5 sm:p-5 flex flex-col justify-between items-center text-center">
+          <!-- Top Row -->
+          <div class="w-full flex items-center justify-between text-[11px] text-slate-400">
+            <span id="backCatBadge" class="px-2.5 py-0.5 rounded-full bg-indigo-100/90 text-indigo-700 font-bold text-[10px] uppercase tracking-wider">
+              Connecting...
+            </span>
+            <div class="flex items-center gap-2">
+              <button id="cardDirectEditBtnBack" title="Edit this card" class="px-2 py-0.5 rounded-lg bg-white/90 border border-slate-200 text-slate-600 hover:text-indigo-600 font-bold text-[10px] shadow-2xs flex items-center gap-1 transition-all">
+                <i class="fa-solid fa-pen text-[9px]"></i> Edit
+              </button>
+              <span class="flex items-center gap-1 text-slate-400 text-[10px]">
+                <i class="fa-solid fa-repeat text-[9px]"></i> Tap to flip
+              </span>
+            </div>
+          </div>
+
+          <!-- Meaning Content -->
+          <div class="w-full my-auto flex flex-col items-center justify-center px-2">
+            <span class="text-[10px] uppercase font-black text-indigo-400 tracking-widest mb-1">MEANING</span>
+            <h3 id="cardEnglishMeaning" class="text-xl sm:text-2xl font-extrabold text-slate-800 leading-snug">
+              Connecting...
+            </h3>
+          </div>
+
+          <!-- Bottom Row -->
+          <div class="w-full flex items-center justify-between text-[11px] pt-1 border-t border-slate-100/80">
+            <button id="backMasteryBadge" title="Click to edit level" class="flex items-center gap-1 font-bold text-[10px] text-slate-600 px-2 py-0.5 rounded-lg bg-white/80 border border-slate-200 hover:bg-slate-100 transition-all">
+              <span id="backMasteryEmoji">⚪</span>
+              <span id="backMasteryText">Unrated</span>
+            </button>
+            <span class="text-[10px] text-indigo-500 font-semibold flex items-center gap-1">
+              <i class="fa-solid fa-circle-info text-[9px]"></i> Meaning
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <!-- 5-LEVEL MASTERY DOCK -->
+    <div class="w-full flex flex-col gap-1 py-1 flex-shrink-0">
+      <div class="w-full flex items-center justify-between gap-1 sm:gap-1.5 bg-white/80 backdrop-blur-xs p-1 sm:p-1.5 rounded-2xl border border-slate-200 shadow-sm">
+        <!-- Level Review Filter Trigger -->
+        <button id="levelReviewDockBtn" title="Review by Mastery Level (1-5)" class="h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-bold text-xs flex items-center gap-1 transition-all flex-shrink-0">
+          <i class="fa-solid fa-layer-group text-[11px] text-indigo-600"></i>
+          <span id="activeReviewLevelBadge" class="text-[10px]">All</span>
+        </button>
+
+        <!-- 5 Level Rating Buttons -->
+        <div class="flex-1 flex items-center justify-around gap-1">
+          <button data-level="1" title="Level 1: Need Practice" class="rate-emoji-btn flex-1 h-8 sm:h-9 rounded-xl flex flex-col items-center justify-center transition-all bg-rose-50/70 border border-rose-200 hover:bg-rose-100 active:scale-90">
+            <span class="text-sm sm:text-base leading-none">😫</span>
+            <span class="text-[8px] font-black text-rose-600 mt-0.5">L1</span>
+          </button>
+          <button data-level="2" title="Level 2: Hard" class="rate-emoji-btn flex-1 h-8 sm:h-9 rounded-xl flex flex-col items-center justify-center transition-all bg-orange-50/70 border border-orange-200 hover:bg-orange-100 active:scale-90">
+            <span class="text-sm sm:text-base leading-none">🙁</span>
+            <span class="text-[8px] font-black text-orange-600 mt-0.5">L2</span>
+          </button>
+          <button data-level="3" title="Level 3: Medium" class="rate-emoji-btn flex-1 h-8 sm:h-9 rounded-xl flex flex-col items-center justify-center transition-all bg-amber-50/70 border border-amber-200 hover:bg-amber-100 active:scale-90">
+            <span class="text-sm sm:text-base leading-none">😐</span>
+            <span class="text-[8px] font-black text-amber-600 mt-0.5">L3</span>
+          </button>
+          <button data-level="4" title="Level 4: Good" class="rate-emoji-btn flex-1 h-8 sm:h-9 rounded-xl flex flex-col items-center justify-center transition-all bg-lime-50/70 border border-lime-200 hover:bg-lime-100 active:scale-90">
+            <span class="text-sm sm:text-base leading-none">🙂</span>
+            <span class="text-[8px] font-black text-lime-700 mt-0.5">L4</span>
+          </button>
+          <button data-level="5" title="Level 5: Mastered" class="rate-emoji-btn flex-1 h-8 sm:h-9 rounded-xl flex flex-col items-center justify-center transition-all bg-emerald-50/70 border border-emerald-200 hover:bg-emerald-100 active:scale-90">
+            <span class="text-sm sm:text-base leading-none">😊</span>
+            <span class="text-[8px] font-black text-emerald-700 mt-0.5">L5</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION BAR -->
+    <footer class="w-full flex items-center justify-between gap-2 py-1 pb-1 sm:pb-2 flex-shrink-0">
+      <button id="navPrevBtn" class="flex-1 h-10 sm:h-11 rounded-2xl bg-white/90 border border-slate-200 shadow-sm text-slate-700 font-bold text-xs hover:bg-slate-50 active:scale-95 transition-all flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-chevron-left text-xs"></i>
+        <span>Prev</span>
+      </button>
+
+      <button id="navSpeakBtn" class="flex-1 h-10 sm:h-11 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-xs shadow-md shadow-pink-200 hover:from-pink-600 hover:to-rose-600 active:scale-95 transition-all flex items-center justify-center gap-2">
+        <i class="fa-solid fa-volume-high text-sm"></i>
+        <span>Pronounce</span>
+      </button>
+
+      <button id="navNextBtn" class="flex-1 h-10 sm:h-11 rounded-2xl bg-indigo-600 text-white font-bold text-xs shadow-md shadow-indigo-200 hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-1.5">
+        <span>Next</span>
+        <i class="fa-solid fa-chevron-right text-xs"></i>
+      </button>
+    </footer>
+
+    <!-- INLINE TOAST NOTIFICATION -->
+    <div id="toastNotification" class="fixed bottom-16 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur-md text-white px-4 py-2 rounded-2xl text-xs font-semibold shadow-2xl flex items-center gap-2 pointer-events-none transition-all duration-300 opacity-0 translate-y-3 z-50">
+      <span id="toastMessage">Notification</span>
+      <button id="toastUndoBtn" class="hidden pointer-events-auto underline font-bold text-amber-300 ml-1">Undo</button>
+    </div>
+
+  </div> <!-- End App Master Container -->
+
+  <!-- MODAL: MULTI-CATEGORY MANAGER & FILTER -->
+  <div id="multiCatModal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-3 z-50">
+    <div class="w-full max-w-sm bg-white rounded-3xl p-4 shadow-2xl border border-slate-100 flex flex-col max-h-[80dvh]">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+          <i class="fa-solid fa-tags text-indigo-500"></i> Category Filter & Manager
+        </h3>
+        <button class="close-modal-btn text-slate-400 hover:text-slate-600 p-1" data-modal="multiCatModal">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <div class="flex items-center justify-between gap-2 py-2 text-xs">
+        <button id="selectAllCatsBtn" class="text-indigo-600 font-bold hover:underline">Select All</button>
+        <button id="clearAllCatsBtn" class="text-rose-500 font-bold hover:underline">Clear Filter</button>
+      </div>
+
+      <div id="multiCatCheckList" class="flex-1 overflow-y-auto custom-scrollbar space-y-1.5 py-1 text-xs">
+        <!-- Dynamically injected category rows -->
+      </div>
+
+      <div class="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+        <button id="applyMultiCatBtn" class="w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-all shadow-md">
+          Apply Filter
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: LEVEL REVIEW (2-ROW TABS + DIRECT EDIT) -->
+  <div id="levelReviewModal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-3 z-50">
+    <div class="w-full max-w-md bg-white rounded-3xl p-4 shadow-2xl border border-slate-100 flex flex-col max-h-[85dvh]">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+          <i class="fa-solid fa-layer-group text-indigo-500"></i> Review by Mastery Level
+        </h3>
+        <button class="close-modal-btn text-slate-400 hover:text-slate-600 p-1" data-modal="levelReviewModal">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <!-- 2-Row Level Tabs Layout -->
+      <div class="flex flex-col gap-1.5 py-2 border-b border-slate-100 text-[11px] font-bold">
+        <!-- Row 1: All, L1, L2, L3 -->
+        <div class="grid grid-cols-4 gap-1.5 w-full">
+          <button data-level-tab="all" class="level-tab-btn py-1.5 px-1 rounded-xl text-center bg-indigo-600 text-white flex items-center justify-center gap-0.5 shadow-2xs">
+            <span>All</span> <span id="countBadgeAll" class="text-[9px] opacity-80">(0)</span>
+          </button>
+          <button data-level-tab="1" class="level-tab-btn py-1.5 px-1 rounded-xl text-center bg-rose-50 text-rose-700 border border-rose-200 flex items-center justify-center gap-0.5 shadow-2xs">
+            <span>😫 L1</span> <span id="countBadge1" class="text-[9px] opacity-80">(0)</span>
+          </button>
+          <button data-level-tab="2" class="level-tab-btn py-1.5 px-1 rounded-xl text-center bg-orange-50 text-orange-700 border border-orange-200 flex items-center justify-center gap-0.5 shadow-2xs">
+            <span>🙁 L2</span> <span id="countBadge2" class="text-[9px] opacity-80">(0)</span>
+          </button>
+          <button data-level-tab="3" class="level-tab-btn py-1.5 px-1 rounded-xl text-center bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center gap-0.5 shadow-2xs">
+            <span>😐 L3</span> <span id="countBadge3" class="text-[9px] opacity-80">(0)</span>
+          </button>
+        </div>
+        <!-- Row 2: L4, L5, None -->
+        <div class="grid grid-cols-3 gap-1.5 w-full">
+          <button data-level-tab="4" class="level-tab-btn py-1.5 px-1 rounded-xl text-center bg-lime-50 text-lime-700 border border-lime-200 flex items-center justify-center gap-0.5 shadow-2xs">
+            <span>🙂 L4</span> <span id="countBadge4" class="text-[9px] opacity-80">(0)</span>
+          </button>
+          <button data-level-tab="5" class="level-tab-btn py-1.5 px-1 rounded-xl text-center bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center gap-0.5 shadow-2xs">
+            <span>😊 L5</span> <span id="countBadge5" class="text-[9px] opacity-80">(0)</span>
+          </button>
+          <button data-level-tab="none" class="level-tab-btn py-1.5 px-1 rounded-xl text-center bg-slate-100 text-slate-600 border border-slate-200 flex items-center justify-center gap-0.5 shadow-2xs">
+            <span>⚪ None</span> <span id="countBadgeNone" class="text-[9px] opacity-80">(0)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Category Filter -->
+      <div class="flex items-center justify-between py-2 text-xs">
+        <span class="text-slate-500 font-medium">Category Scope:</span>
+        <select id="levelReviewCategorySelect" class="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-slate-700 font-semibold">
+          <option value="all">All Categories</option>
+        </select>
+      </div>
+
+      <!-- Word Rows List -->
+      <div id="levelReviewWordList" class="flex-1 overflow-y-auto custom-scrollbar space-y-1.5 py-1 text-xs">
+        <!-- Injected dynamically -->
+      </div>
+
+      <div class="pt-3 border-t border-slate-100">
+        <button id="lockLevelReviewPracticeBtn" class="w-full py-2 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-xs shadow-md active:scale-95 transition-all">
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: FULL VOCABULARY EDIT (Z-[70] FOREGROUND LAYER) -->
+  <div id="editVocabModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 z-[70]">
+    <div class="w-full max-w-sm bg-white rounded-3xl p-4 shadow-2xl border border-slate-100 flex flex-col max-h-[85dvh]">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-xs sm:text-sm flex items-center gap-1.5">
+          <i class="fa-solid fa-pen-to-square text-pink-500"></i> Edit Vocabulary
+        </h3>
+        <button class="close-modal-btn text-slate-400 hover:text-slate-600 p-1" data-modal="editVocabModal">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+      <div class="flex-1 overflow-y-auto custom-scrollbar space-y-2.5 py-2 text-xs">
+        <div>
+          <label class="font-bold text-slate-700 block mb-0.5">Thai Word</label>
+          <input id="editThaiWord" type="text" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 font-thaiLoop text-sm">
+        </div>
+        <div>
+          <label class="font-bold text-slate-700 block mb-0.5">Meaning</label>
+          <input id="editEngMeaning" type="text" placeholder="Enter meaning..." class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500">
+        </div>
+        <div>
+          <label class="font-bold text-slate-700 block mb-0.5">Mastery Level</label>
+          <div class="grid grid-cols-6 gap-1" id="editModalLevelGroup">
+            <button data-edit-lvl="1" class="edit-lvl-btn py-1.5 rounded-lg border text-[11px] font-bold text-rose-700 bg-rose-50 border-rose-200 hover:bg-rose-100">😫 L1</button>
+            <button data-edit-lvl="2" class="edit-lvl-btn py-1.5 rounded-lg border text-[11px] font-bold text-orange-700 bg-orange-50 border-orange-200 hover:bg-orange-100">🙁 L2</button>
+            <button data-edit-lvl="3" class="edit-lvl-btn py-1.5 rounded-lg border text-[11px] font-bold text-amber-700 bg-amber-50 border-amber-200 hover:bg-amber-100">😐 L3</button>
+            <button data-edit-lvl="4" class="edit-lvl-btn py-1.5 rounded-lg border text-[11px] font-bold text-lime-700 bg-lime-50 border-lime-200 hover:bg-lime-100">🙂 L4</button>
+            <button data-edit-lvl="5" class="edit-lvl-btn py-1.5 rounded-lg border text-[11px] font-bold text-emerald-700 bg-emerald-50 border-emerald-200 hover:bg-emerald-100">😊 L5</button>
+            <button data-edit-lvl="none" class="edit-lvl-btn py-1.5 rounded-lg border text-[11px] font-bold text-slate-600 bg-slate-50 border-slate-200 hover:bg-slate-100">⚪ None</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">Category</label>
+            <select id="editCategorySelect" class="w-full px-2.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 text-xs font-semibold">
+            </select>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">New Category</label>
+            <input id="editNewCategory" type="text" placeholder="Custom..." class="w-full px-2.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 text-xs">
+          </div>
+        </div>
+        <div>
+          <label class="font-bold text-slate-700 block mb-0.5">Image URL</label>
+          <input id="editImageUrl" type="url" placeholder="Paste image link..." class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 text-[11px]">
+        </div>
+      </div>
+      <div class="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+        <button id="saveEditVocabBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold text-xs shadow-md transition-all">
+          Save Changes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD VOCABULARY (SINGLE + BULK SMART PASTE) -->
+  <div id="addVocabModal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-3 z-50">
+    <div class="w-full max-w-sm bg-white rounded-3xl p-4 shadow-2xl border border-slate-100 flex flex-col max-h-[85dvh]">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <div class="flex items-center gap-2">
+          <button id="tabSingleAdd" class="text-xs font-black text-pink-600 border-b-2 border-pink-500 pb-1">Single Entry</button>
+          <button id="tabBulkAdd" class="text-xs font-bold text-slate-400 hover:text-slate-600 pb-1">Bulk Smart Paste</button>
+        </div>
+        <button class="close-modal-btn text-slate-400 hover:text-slate-600 p-1" data-modal="addVocabModal">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <!-- Single View -->
+      <div id="singleAddView" class="flex-1 overflow-y-auto custom-scrollbar space-y-2.5 py-2 text-xs">
+        <div>
+          <label class="font-bold text-slate-700 block mb-0.5">Thai Word</label>
+          <input id="inputThaiWord" type="text" placeholder="e.g. สวัสดี" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 font-thaiLoop text-sm">
+        </div>
+        <div>
+          <label class="font-bold text-slate-700 block mb-0.5">Meaning</label>
+          <input id="inputEngMeaning" type="text" placeholder="e.g. Hello / Goodbye" class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500">
+        </div>
+        <div>
+          <label class="font-bold text-slate-700 block mb-0.5">Image URL (Optional)</label>
+          <input id="inputImageUrl" type="url" placeholder="Paste direct image link..." class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 text-[11px]">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">Category</label>
+            <select id="inputCategorySelect" class="w-full px-2.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 text-xs font-semibold">
+            </select>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">New Category</label>
+            <input id="inputNewCategory" type="text" placeholder="Add custom..." class="w-full px-2.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 text-xs">
+          </div>
+        </div>
+      </div>
+
+      <!-- Bulk Smart Paste View -->
+      <div id="bulkAddView" class="hidden flex-1 overflow-y-auto custom-scrollbar space-y-2 py-2 text-xs">
+        <p class="text-[11px] text-slate-500">
+          Paste lines formatted with <code>-</code>, <code>—</code>, <code>:</code>, or tabs. Any order is auto-detected!
+        </p>
+        <textarea id="bulkPasteTextarea" rows="6" placeholder="สวัสดี — hello&#10;bed — เตียง&#10;น้ำ : water" class="w-full p-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 text-xs leading-relaxed"></textarea>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">Assign Category</label>
+            <select id="bulkCategorySelect" class="w-full px-2.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 text-xs font-semibold">
+            </select>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-0.5">New Category</label>
+            <input id="bulkNewCategory" type="text" placeholder="Add custom..." class="w-full px-2.5 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 text-xs">
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-100 flex items-center justify-end gap-2">
+        <button id="saveVocabBtn" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-bold text-xs transition-all shadow-md">
+          Add Vocabulary
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PHOTO EDIT (Z-[70]) -->
+  <div id="photoEditModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 z-[70]">
+    <div class="w-full max-w-xs bg-white rounded-3xl p-4 shadow-2xl border border-slate-100">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+          <i class="fa-solid fa-camera text-pink-500"></i> Edit Card Visual URL
+        </h3>
+        <button class="close-modal-btn text-slate-400 hover:text-slate-600 p-1" data-modal="photoEditModal">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+      <div class="py-3 space-y-2">
+        <input id="editPhotoInputUrl" type="url" placeholder="Paste new image URL..." class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-500 text-xs">
+        <button id="savePhotoUrlBtn" class="w-full py-2 rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-bold text-xs shadow-sm transition-all">
+          Save Photo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: VOCABULARY MANAGER -->
+  <div id="vocabManagerModal" class="hidden fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center p-3 z-50">
+    <div class="w-full max-w-md bg-white rounded-3xl p-4 shadow-2xl border border-slate-100 flex flex-col max-h-[85dvh]">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+          <i class="fa-solid fa-list-check text-indigo-500"></i> Vocabulary Manager
+        </h3>
+        <button class="close-modal-btn text-slate-400 hover:text-slate-600 p-1" data-modal="vocabManagerModal">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-3 gap-1.5 py-2 border-b border-slate-100 text-xs">
+        <div class="col-span-2 relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-400 text-[10px]"></i>
+          <input id="managerSearchInput" type="text" placeholder="Search Thai or Meaning..." class="w-full pl-7 pr-2 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 text-xs">
+        </div>
+        <select id="managerCatFilter" class="w-full px-2 py-1.5 rounded-xl border border-slate-200 focus:outline-none focus:border-indigo-500 text-[11px] font-semibold">
+          <option value="all">All Cats</option>
+        </select>
+      </div>
+
+      <div id="managerWordList" class="flex-1 overflow-y-auto custom-scrollbar space-y-1.5 py-2 text-xs">
+        <!-- Dynamically injected word rows -->
+      </div>
+
+      <div class="pt-2 border-t border-slate-100 text-[11px] text-slate-400 flex items-center justify-between">
+        <span id="managerCountInfo">Showing 0 words</span>
+        <span>Click trash to delete with undo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC & FIREBASE INTEGRATION -->
+  <script type="module">
+    /* Firebase Modular Web SDK */
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    /* =========================================================================
+       PRODUCTION CONFIGURATION
+       To connect your own Firebase project for cloud sync across all devices:
+       1. Replace the keys below with your Firebase Web project credentials.
+       2. If left blank, the app automatically runs in Offline / LocalStorage mode!
+       ========================================================================= */
+    const PRODUCTION_FIREBASE_CONFIG = {
+      apiKey: "",
+      authDomain: "",
+      projectId: "",
+      storageBucket: "",
+      messagingSenderId: "",
+      appId: ""
+    };
+
+    /* Constant: Default No-Image Placeholder */
+    const NO_IMAGE_PLACEHOLDER = "https://static.thenounproject.com/png/3674270-200.png";
+    window.NO_IMAGE_PLACEHOLDER = NO_IMAGE_PLACEHOLDER;
+
+    /* Application State */
+    const state = {
+      vocabularies: [],
+      categories: [],
+      isConnecting: true,
+      activeCategory: 'all',
+      selectedMultiCats: [],
+      visualsEnabled: true,
+      defaultFace: 'front', // 'front' or 'back'
+      isCurrentFlipped: false,
+      voiceSpeed: 1.0,
+      isMuted: false,
+      voicePreset: 'female',
+      currentWordId: null,
+      history: [],
+      historyIndex: -1,
+      reviewLevelFilter: 'all',
+      levelReviewTab: 'all',
+      editingWordId: null,
+      editingWordLevel: null,
+      deletedHistory: [],
+      firestoreDocRef: null,
+      userId: null
+    };
+
+    /* Spaced Repetition Level Colors and Weights */
+    const LEVEL_CONFIG = {
+      1: {
+        emoji: '😫',
+        label: 'Level 1 (Need Practice)',
+        weight: 6,
+        color: 'text-rose-600',
+        bg: 'bg-rose-500',
+        lightBg: 'bg-rose-50',
+        border: 'border-rose-300',
+        activeClass: 'bg-rose-500 text-white ring-2 ring-rose-400',
+        inactiveClass: 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
+      },
+      2: {
+        emoji: '🙁',
+        label: 'Level 2 (Hard)',
+        weight: 4,
+        color: 'text-orange-600',
+        bg: 'bg-orange-500',
+        lightBg: 'bg-orange-50',
+        border: 'border-orange-300',
+        activeClass: 'bg-orange-500 text-white ring-2 ring-orange-400',
+        inactiveClass: 'bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200'
+      },
+      3: {
+        emoji: '😐',
+        label: 'Level 3 (Medium)',
+        weight: 3,
+        color: 'text-amber-600',
+        bg: 'bg-amber-500',
+        lightBg: 'bg-amber-50',
+        border: 'border-amber-300',
+        activeClass: 'bg-amber-500 text-white ring-2 ring-amber-400',
+        inactiveClass: 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
+      },
+      4: {
+        emoji: '🙂',
+        label: 'Level 4 (Good)',
+        weight: 2,
+        color: 'text-lime-700',
+        bg: 'bg-lime-500',
+        lightBg: 'bg-lime-50',
+        border: 'border-lime-300',
+        activeClass: 'bg-lime-500 text-white ring-2 ring-lime-400',
+        inactiveClass: 'bg-lime-50 text-lime-700 hover:bg-lime-100 border border-lime-200'
+      },
+      5: {
+        emoji: '😊',
+        label: 'Level 5 (Mastered)',
+        weight: 1,
+        color: 'text-emerald-700',
+        bg: 'bg-emerald-500',
+        lightBg: 'bg-emerald-50',
+        border: 'border-emerald-300',
+        activeClass: 'bg-emerald-500 text-white ring-2 ring-emerald-400',
+        inactiveClass: 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
+      },
+      none: {
+        emoji: '⚪',
+        label: 'Unrated',
+        weight: 4,
+        color: 'text-slate-600',
+        bg: 'bg-slate-500',
+        lightBg: 'bg-slate-100',
+        border: 'border-slate-300',
+        activeClass: 'bg-slate-600 text-white ring-2 ring-slate-400',
+        inactiveClass: 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
+      },
+      all: {
+        emoji: '📚',
+        label: 'All',
+        weight: 1,
+        color: 'text-indigo-600',
+        bg: 'bg-indigo-600',
+        lightBg: 'bg-indigo-50',
+        border: 'border-indigo-300',
+        activeClass: 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm',
+        inactiveClass: 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
+      }
+    };
+    LEVEL_CONFIG[null] = LEVEL_CONFIG.none;
+
+    /* Web Speech API Thai Pronunciation Engine */
+    class SpeechController {
+      constructor() {
+        this.synth = window.speechSynthesis;
+        this.thaiVoice = null;
+        this.loadVoices();
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+          window.speechSynthesis.onvoiceschanged = () => this.loadVoices();
+        }
+      }
+
+      loadVoices() {
+        if (!this.synth) return;
+        const voices = this.synth.getVoices();
+        this.thaiVoice = voices.find(v => v.lang === 'th-TH' || v.lang.startsWith('th')) || null;
+      }
+
+      speak(text) {
+        if (state.isMuted || !this.synth) return;
+        const thaiStrictRegex = /[\u0E00-\u0E7F]+/g;
+        const matched = text.match(thaiStrictRegex);
+        if (!matched) return;
+        const cleanThai = matched.join(' ');
+
+        this.synth.cancel();
+        const utterance = new SpeechSynthesisUtterance(cleanThai);
+        utterance.lang = 'th-TH';
+
+        if (this.thaiVoice) {
+          utterance.voice = this.thaiVoice;
+        }
+
+        utterance.rate = state.voiceSpeed;
+
+        if (state.voicePreset === 'female') {
+          utterance.pitch = 1.3;
+        } else if (state.voicePreset === 'male') {
+          utterance.pitch = 0.85;
+        } else if (state.voicePreset === 'deep') {
+          utterance.pitch = 0.65;
+        } else {
+          utterance.pitch = 1.0;
+        }
+
+        this.synth.speak(utterance);
+      }
+    }
+
+    const speaker = new SpeechController();
+
+    /* DOM Query Registry */
+    const dom = {
+      vocabCounterText: document.getElementById('vocabCounterText'),
+      cloudStatusIndicator: document.getElementById('cloudStatusIndicator'),
+      voiceBtn: document.getElementById('voiceBtn'),
+      voicePopover: document.getElementById('voicePopover'),
+      voiceSpeedBadge: document.getElementById('voiceSpeedBadge'),
+      voiceHeaderIcon: document.getElementById('voiceHeaderIcon'),
+      muteToggleBtn: document.getElementById('muteToggleBtn'),
+      popoverSpeedDisplay: document.getElementById('popoverSpeedDisplay'),
+      speechRateSlider: document.getElementById('speechRateSlider'),
+      visualToggleBtn: document.getElementById('visualToggleBtn'),
+      visualSlashLine: document.getElementById('visualSlashLine'),
+      defaultFaceBtn: document.getElementById('defaultFaceBtn'),
+      defaultFaceText: document.getElementById('defaultFaceText'),
+      undoActionBtn: document.getElementById('undoActionBtn'),
+      openManagerBtn: document.getElementById('openManagerBtn'),
+      openAddBtn: document.getElementById('openAddBtn'),
+      multiCatFilterBtn: document.getElementById('multiCatFilterBtn'),
+      multiCatBadge: document.getElementById('multiCatBadge'),
+      categoryPillList: document.getElementById('categoryPillList'),
+      flashcardInner: document.getElementById('flashcardInner'),
+      cardVisualContainer: document.getElementById('cardVisualContainer'),
+      cardFrontImg: document.getElementById('cardFrontImg'),
+      editPhotoDirectBtn: document.getElementById('editPhotoDirectBtn'),
+      cardDirectEditBtnFront: document.getElementById('cardDirectEditBtnFront'),
+      cardDirectEditBtnBack: document.getElementById('cardDirectEditBtnBack'),
+      thaiScriptLooped: document.getElementById('thaiScriptLooped'),
+      thaiScriptModern: document.getElementById('thaiScriptModern'),
+      frontCatBadge: document.getElementById('frontCatBadge'),
+      backCatBadge: document.getElementById('backCatBadge'),
+      frontMasteryBadge: document.getElementById('frontMasteryBadge'),
+      backMasteryBadge: document.getElementById('backMasteryBadge'),
+      frontMasteryEmoji: document.getElementById('frontMasteryEmoji'),
+      frontMasteryText: document.getElementById('frontMasteryText'),
+      backMasteryEmoji: document.getElementById('backMasteryEmoji'),
+      backMasteryText: document.getElementById('backMasteryText'),
+      cardEnglishMeaning: document.getElementById('cardEnglishMeaning'),
+      rateButtons: document.querySelectorAll('.rate-emoji-btn'),
+      levelReviewDockBtn: document.getElementById('levelReviewDockBtn'),
+      activeReviewLevelBadge: document.getElementById('activeReviewLevelBadge'),
+      navPrevBtn: document.getElementById('navPrevBtn'),
+      navSpeakBtn: document.getElementById('navSpeakBtn'),
+      navNextBtn: document.getElementById('navNextBtn'),
+      toastNotification: document.getElementById('toastNotification'),
+      toastMessage: document.getElementById('toastMessage'),
+      toastUndoBtn: document.getElementById('toastUndoBtn'),
+      multiCatModal: document.getElementById('multiCatModal'),
+      multiCatCheckList: document.getElementById('multiCatCheckList'),
+      selectAllCatsBtn: document.getElementById('selectAllCatsBtn'),
+      clearAllCatsBtn: document.getElementById('clearAllCatsBtn'),
+      applyMultiCatBtn: document.getElementById('applyMultiCatBtn'),
+      levelReviewModal: document.getElementById('levelReviewModal'),
+      levelReviewCategorySelect: document.getElementById('levelReviewCategorySelect'),
+      levelReviewWordList: document.getElementById('levelReviewWordList'),
+      lockLevelReviewPracticeBtn: document.getElementById('lockLevelReviewPracticeBtn'),
+      addVocabModal: document.getElementById('addVocabModal'),
+      tabSingleAdd: document.getElementById('tabSingleAdd'),
+      tabBulkAdd: document.getElementById('tabBulkAdd'),
+      singleAddView: document.getElementById('singleAddView'),
+      bulkAddView: document.getElementById('bulkAddView'),
+      inputThaiWord: document.getElementById('inputThaiWord'),
+      inputEngMeaning: document.getElementById('inputEngMeaning'),
+      inputImageUrl: document.getElementById('inputImageUrl'),
+      inputCategorySelect: document.getElementById('inputCategorySelect'),
+      inputNewCategory: document.getElementById('inputNewCategory'),
+      bulkPasteTextarea: document.getElementById('bulkPasteTextarea'),
+      bulkCategorySelect: document.getElementById('bulkCategorySelect'),
+      bulkNewCategory: document.getElementById('bulkNewCategory'),
+      saveVocabBtn: document.getElementById('saveVocabBtn'),
+      photoEditModal: document.getElementById('photoEditModal'),
+      editPhotoInputUrl: document.getElementById('editPhotoInputUrl'),
+      savePhotoUrlBtn: document.getElementById('savePhotoUrlBtn'),
+      vocabManagerModal: document.getElementById('vocabManagerModal'),
+      managerSearchInput: document.getElementById('managerSearchInput'),
+      managerCatFilter: document.getElementById('managerCatFilter'),
+      managerWordList: document.getElementById('managerWordList'),
+      managerCountInfo: document.getElementById('managerCountInfo'),
+      editVocabModal: document.getElementById('editVocabModal'),
+      editThaiWord: document.getElementById('editThaiWord'),
+      editEngMeaning: document.getElementById('editEngMeaning'),
+      editCategorySelect: document.getElementById('editCategorySelect'),
+      editNewCategory: document.getElementById('editNewCategory'),
+      editImageUrl: document.getElementById('editImageUrl'),
+      saveEditVocabBtn: document.getElementById('saveEditVocabBtn'),
+      editModalLevelButtons: document.querySelectorAll('.edit-lvl-btn')
+    };
+
+    /* Notification Helper */
+    let toastTimeout = null;
+    function showToast(message, showUndo = false, onUndo = null) {
+      dom.toastMessage.textContent = message;
+      if (showUndo && onUndo) {
+        dom.toastUndoBtn.classList.remove('hidden');
+        dom.toastUndoBtn.onclick = () => {
+          onUndo();
+          hideToast();
+        };
+      } else {
+        dom.toastUndoBtn.classList.add('hidden');
+      }
+
+      dom.toastNotification.classList.remove('opacity-0', 'translate-y-3');
+      dom.toastNotification.classList.add('opacity-100', 'translate-y-0');
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(hideToast, 4000);
+    }
+
+    function hideToast() {
+      dom.toastNotification.classList.remove('opacity-100', 'translate-y-0');
+      dom.toastNotification.classList.add('opacity-0', 'translate-y-3');
+    }
+
+    /* Active Word Pool Filtering */
+    function getActivePool() {
+      let pool = state.vocabularies;
+
+      if (state.reviewLevelFilter !== 'all') {
+        if (state.reviewLevelFilter === 'none') {
+          pool = pool.filter(v => !v.level);
+        } else {
+          const lvl = parseInt(state.reviewLevelFilter, 10);
+          pool = pool.filter(v => v.level === lvl);
+        }
+      }
+
+      if (state.selectedMultiCats.length > 0) {
+        pool = pool.filter(v => state.selectedMultiCats.includes(v.category));
+      } else if (state.activeCategory !== 'all') {
+        pool = pool.filter(v => v.category === state.activeCategory);
+      }
+
+      return pool;
+    }
+
+    /* Weighted Card Selection */
+    function pickNextWord() {
+      const pool = getActivePool();
+      if (pool.length === 0) return null;
+      if (pool.length === 1) return pool[0];
+
+      const eligible = pool.filter(w => w.id !== state.currentWordId);
+      const candidates = eligible.length > 0 ? eligible : pool;
+
+      const weightedList = [];
+      candidates.forEach(item => {
+        const lvlWeight = (LEVEL_CONFIG[item.level] || LEVEL_CONFIG[null]).weight;
+        for (let i = 0; i < lvlWeight; i++) {
+          weightedList.push(item);
+        }
+      });
+
+      const randomIndex = Math.floor(Math.random() * weightedList.length);
+      return weightedList[randomIndex];
+    }
+
+    function getCurrentWord() {
+      return state.vocabularies.find(v => v.id === state.currentWordId) || null;
+    }
+
+    /* Render Current Card UI */
+    function renderCurrentCard(autoSpeak = true) {
+      if (state.isConnecting) {
+        dom.thaiScriptLooped.textContent = 'Connecting...';
+        dom.thaiScriptModern.textContent = 'Connecting...';
+        dom.cardEnglishMeaning.textContent = 'Connecting...';
+        dom.frontCatBadge.textContent = 'Connecting...';
+        dom.backCatBadge.textContent = 'Connecting...';
+        dom.cardFrontImg.src = NO_IMAGE_PLACEHOLDER;
+        dom.cardFrontImg.className = 'max-h-[20dvh] sm:max-h-32 max-w-full w-auto h-auto object-contain p-2 bg-white block';
+        updateRatingButtons(null);
+        return;
+      }
+
+      const word = getCurrentWord();
+      if (!word) {
+        dom.thaiScriptLooped.textContent = 'ไม่มีคำศัพท์';
+        dom.thaiScriptModern.textContent = 'No words found';
+        dom.cardEnglishMeaning.textContent = 'Add words or adjust filter';
+        dom.frontCatBadge.textContent = 'None';
+        dom.backCatBadge.textContent = 'None';
+        dom.cardFrontImg.src = NO_IMAGE_PLACEHOLDER;
+        dom.cardFrontImg.className = 'max-h-[20dvh] sm:max-h-32 max-w-full w-auto h-auto object-contain p-2 bg-white block';
+        updateRatingButtons(null);
+        return;
+      }
+
+      // Set Card Content
+      dom.thaiScriptLooped.textContent = word.thai;
+      dom.thaiScriptModern.textContent = word.thai;
+      dom.cardEnglishMeaning.textContent = word.meaning;
+      dom.frontCatBadge.textContent = word.category || 'General';
+      dom.backCatBadge.textContent = word.category || 'General';
+
+      if (word.image && word.image.trim() !== '') {
+        dom.cardFrontImg.src = word.image;
+        dom.cardFrontImg.className = 'max-h-[20dvh] sm:max-h-32 max-w-full w-auto h-auto object-contain block transition-transform duration-300 group-hover:scale-105';
+      } else {
+        dom.cardFrontImg.src = NO_IMAGE_PLACEHOLDER;
+        dom.cardFrontImg.className = 'max-h-[20dvh] sm:max-h-32 max-w-full w-auto h-auto object-contain p-2 bg-white block';
+      }
+
+      const lvlInfo = LEVEL_CONFIG[word.level] || LEVEL_CONFIG[null];
+      dom.frontMasteryEmoji.textContent = lvlInfo.emoji;
+      dom.frontMasteryText.textContent = word.level ? `Level ${word.level}` : 'Unrated';
+      dom.backMasteryEmoji.textContent = lvlInfo.emoji;
+      dom.backMasteryText.textContent = word.level ? `Level ${word.level}` : 'Unrated';
+
+      // Visuals toggle sizing
+      if (state.visualsEnabled) {
+        dom.cardVisualContainer.classList.remove('hidden');
+        dom.thaiScriptLooped.className = 'font-thaiLoop font-bold text-2xl sm:text-3xl text-slate-800 tracking-normal leading-relaxed break-words';
+        dom.thaiScriptModern.className = 'font-thaiModern font-semibold text-xl sm:text-2xl text-slate-600 tracking-wide break-words';
+      } else {
+        dom.cardVisualContainer.classList.add('hidden');
+        dom.thaiScriptLooped.className = 'font-thaiLoop font-bold text-3xl sm:text-4xl text-slate-800 tracking-normal leading-relaxed break-words';
+        dom.thaiScriptModern.className = 'font-thaiModern font-semibold text-2xl sm:text-3xl text-slate-600 tracking-wide break-words';
+      }
+
+      if (state.defaultFace === 'back') {
+        state.isCurrentFlipped = true;
+        dom.flashcardInner.classList.add('is-flipped');
+      } else {
+        state.isCurrentFlipped = false;
+        dom.flashcardInner.classList.remove('is-flipped');
+      }
+
+      updateRatingButtons(word.level);
+
+      if (autoSpeak && state.defaultFace === 'front') {
+        speaker.speak(word.thai);
+      }
+    }
+
+    function flipCard() {
+      state.isCurrentFlipped = !state.isCurrentFlipped;
+      dom.flashcardInner.classList.toggle('is-flipped', state.isCurrentFlipped);
+
+      if (!state.isCurrentFlipped) {
+        const word = getCurrentWord();
+        if (word) speaker.speak(word.thai);
+      }
+    }
+
+    function updateRatingButtons(currentLevel) {
+      dom.rateButtons.forEach(btn => {
+        const btnLevel = parseInt(btn.dataset.level, 10);
+        if (currentLevel === btnLevel) {
+          btn.classList.add('ring-2', 'ring-pink-500', 'bg-white', 'shadow-md', 'scale-105');
+        } else {
+          btn.classList.remove('ring-2', 'ring-pink-500', 'bg-white', 'shadow-md', 'scale-105');
+        }
+      });
+    }
+
+    /* Word Level Reassignment */
+    function updateWordLevel(wordId, targetLevel) {
+      const word = state.vocabularies.find(v => v.id === wordId);
+      if (!word) return;
+
+      if (targetLevel === null || word.level === targetLevel) {
+        word.level = null;
+      } else {
+        word.level = targetLevel;
+      }
+
+      const reviewScroll = dom.levelReviewWordList ? dom.levelReviewWordList.scrollTop : 0;
+      const managerScroll = dom.managerWordList ? dom.managerWordList.scrollTop : 0;
+
+      renderLevelReviewModal();
+      renderManagerWordList();
+      renderCurrentCard(false);
+
+      if (dom.levelReviewWordList) dom.levelReviewWordList.scrollTop = reviewScroll;
+      if (dom.managerWordList) dom.managerWordList.scrollTop = managerScroll;
+
+      persistState();
+      const lvlConfig = LEVEL_CONFIG[word.level] || LEVEL_CONFIG.none;
+      showToast(`"${word.thai}" → ${word.level ? `Level ${word.level} ${lvlConfig.emoji}` : 'Unrated ⚪'}`);
+    }
+
+    function setWordLevel(levelNum) {
+      const word = getCurrentWord();
+      if (!word) return;
+      updateWordLevel(word.id, levelNum);
+    }
+
+    function navigateNext() {
+      const pool = getActivePool();
+      if (pool.length === 0) {
+        renderCurrentCard(false);
+        return;
+      }
+
+      if (state.historyIndex < state.history.length - 1) {
+        state.historyIndex++;
+        state.currentWordId = state.history[state.historyIndex];
+      } else {
+        const nextWord = pickNextWord();
+        if (nextWord) {
+          state.currentWordId = nextWord.id;
+          state.history.push(nextWord.id);
+          state.historyIndex = state.history.length - 1;
+        }
+      }
+
+      renderCurrentCard(true);
+    }
+
+    function navigatePrev() {
+      if (state.historyIndex > 0) {
+        state.historyIndex--;
+        state.currentWordId = state.history[state.historyIndex];
+        renderCurrentCard(true);
+      } else {
+        showToast('At the beginning of history');
+      }
+    }
+
+    /* Category Rendering & UI Synchronization */
+    function renderCategories() {
+      const catsSet = new Set(state.categories.filter(Boolean));
+      state.vocabularies.forEach(v => {
+        if (v.category && v.category.trim()) catsSet.add(v.category.trim());
+      });
+      state.categories = Array.from(catsSet);
+
+      dom.categoryPillList.innerHTML = '';
+
+      // "All" Pill
+      const allBtn = document.createElement('button');
+      allBtn.dataset.cat = 'all';
+      allBtn.className = `cat-pill px-3 py-1 rounded-full text-xs font-bold transition-all shadow-sm flex-shrink-0 ${
+        state.activeCategory === 'all' && state.selectedMultiCats.length === 0
+          ? 'bg-indigo-600 text-white'
+          : 'bg-white/80 text-slate-600 hover:bg-slate-100'
+      }`;
+      allBtn.textContent = 'All';
+      allBtn.onclick = () => {
+        state.activeCategory = 'all';
+        state.selectedMultiCats = [];
+        updateCategoryFilterUI();
+        navigateNext();
+        persistState();
+      };
+      dom.categoryPillList.appendChild(allBtn);
+
+      // Custom Category Pills
+      state.categories.forEach(cat => {
+        const pill = document.createElement('button');
+        const isActive = state.selectedMultiCats.length > 0
+          ? state.selectedMultiCats.includes(cat)
+          : (state.activeCategory === cat && state.selectedMultiCats.length === 0);
+        pill.dataset.cat = cat;
+        pill.className = `cat-pill px-3 py-1 rounded-full text-xs font-bold transition-all shadow-sm flex-shrink-0 ${
+          isActive
+            ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white'
+            : 'bg-white/80 text-slate-600 hover:bg-slate-100'
+        }`;
+        pill.textContent = cat;
+        pill.onclick = () => {
+          state.activeCategory = cat;
+          state.selectedMultiCats = [];
+          updateCategoryFilterUI();
+          navigateNext();
+          persistState();
+        };
+
+        dom.categoryPillList.appendChild(pill);
+      });
+
+      populateSelectOptions(dom.inputCategorySelect, state.categories);
+      populateSelectOptions(dom.bulkCategorySelect, state.categories);
+      populateSelectOptions(dom.levelReviewCategorySelect, state.categories, true);
+      populateSelectOptions(dom.managerCatFilter, state.categories, true);
+      populateSelectOptions(dom.editCategorySelect, state.categories);
+
+      renderMultiCatChecklist();
+      dom.vocabCounterText.textContent = `Total ${state.vocabularies.length} Vocabs`;
+    }
+
+    function populateSelectOptions(selectEl, list, includeAll = false) {
+      if (!selectEl) return;
+      const current = selectEl.value;
+      selectEl.innerHTML = '';
+      if (includeAll) {
+        const opt = document.createElement('option');
+        opt.value = 'all';
+        opt.textContent = 'All Categories';
+        selectEl.appendChild(opt);
+      }
+      list.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        selectEl.appendChild(opt);
+      });
+      if (current && [...selectEl.options].some(o => o.value === current)) {
+        selectEl.value = current;
+      }
+    }
+
+    function updateCategoryFilterUI() {
+      const pills = dom.categoryPillList.querySelectorAll('.cat-pill');
+      pills.forEach(pill => {
+        const cat = pill.dataset.cat;
+        if (state.selectedMultiCats.length > 0) {
+          if (cat === 'all') {
+            pill.className = 'cat-pill px-3 py-1 rounded-full text-xs font-bold transition-all shadow-sm flex-shrink-0 bg-white/80 text-slate-600 hover:bg-slate-100';
+          } else if (state.selectedMultiCats.includes(cat)) {
+            pill.className = 'cat-pill px-3 py-1 rounded-full text-xs font-bold transition-all shadow-sm flex-shrink-0 bg-gradient-to-r from-pink-500 to-rose-500 text-white';
+          } else {
+            pill.className = 'cat-pill px-3 py-1 rounded-full text-xs font-bold transition-all shadow-sm flex-shrink-0 bg-white/80 text-slate-600 hover:bg-slate-100';
+          }
+        } else if (cat === 'all') {
+          if (state.activeCategory === 'all') {
+            pill.className = 'cat-pill px-3 py-1 rounded-full text-xs font-bold transition-all shadow-sm flex-shrink-0 bg-indigo-600 text-white';
+          } else {
+            pill.className = 'cat-pill px-3 py-1 rounded-full text-xs font-bold transition-all shadow-sm flex-shrink-0 bg-white/80 text-slate-600 hover:bg-slate-100';
+          }
+        } else {
+          if (state.activeCategory === cat) {
+            pill.className = 'cat-pill px-3 py-1 rounded-full text-xs font-bold transition-all shadow-sm flex-shrink-0 bg-gradient-to-r from-pink-500 to-rose-500 text-white';
+          } else {
+            pill.className = 'cat-pill px-3 py-1 rounded-full text-xs font-bold transition-all shadow-sm flex-shrink-0 bg-white/80 text-slate-600 hover:bg-slate-100';
+          }
+        }
+      });
+
+      if (state.selectedMultiCats.length > 0) {
+        dom.multiCatBadge.textContent = state.selectedMultiCats.length;
+        dom.multiCatBadge.classList.remove('hidden');
+        dom.multiCatFilterBtn.classList.add('border-indigo-400', 'bg-indigo-50');
+      } else {
+        dom.multiCatBadge.classList.add('hidden');
+        dom.multiCatFilterBtn.classList.remove('border-indigo-400', 'bg-indigo-50');
+      }
+    }
+
+    /* Multi-Category Checklist with Inline Rename & Delete */
+    function renderMultiCatChecklist() {
+      dom.multiCatCheckList.innerHTML = '';
+      state.categories.forEach(cat => {
+        const row = document.createElement('div');
+        row.className = 'flex items-center justify-between p-2 rounded-xl bg-slate-50/70 hover:bg-slate-100 border border-slate-200 transition-all gap-2';
+
+        const label = document.createElement('label');
+        label.className = 'flex items-center gap-2 flex-1 cursor-pointer min-w-0';
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.value = cat;
+        cb.checked = state.selectedMultiCats.includes(cat);
+        cb.className = 'w-4 h-4 rounded text-indigo-600 accent-indigo-600 flex-shrink-0';
+
+        const span = document.createElement('span');
+        span.className = 'font-semibold text-slate-700 truncate';
+        span.textContent = cat;
+
+        const count = state.vocabularies.filter(v => v.category === cat).length;
+        const badge = document.createElement('span');
+        badge.className = 'text-[10px] text-slate-400 font-bold bg-white px-1.5 py-0.5 rounded-full border border-slate-200 flex-shrink-0';
+        badge.textContent = `${count}w`;
+
+        label.appendChild(cb);
+        label.appendChild(span);
+        label.appendChild(badge);
+        row.appendChild(label);
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'flex items-center gap-1 flex-shrink-0';
+
+        const editCatBtn = document.createElement('button');
+        editCatBtn.type = 'button';
+        editCatBtn.title = `Rename "${cat}"`;
+        editCatBtn.className = 'h-7 w-7 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 flex items-center justify-center transition-colors cursor-pointer';
+        editCatBtn.innerHTML = '<i class="fa-solid fa-pen text-xs"></i>';
+        editCatBtn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          row.innerHTML = '';
+          const editWrap = document.createElement('div');
+          editWrap.className = 'flex items-center gap-1.5 w-full';
+
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.value = cat;
+          input.className = 'flex-1 px-2.5 py-1 text-xs rounded-lg border border-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-400 font-semibold text-slate-800 bg-white';
+
+          const saveBtn = document.createElement('button');
+          saveBtn.type = 'button';
+          saveBtn.className = 'h-7 w-7 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center transition-colors shadow-2xs cursor-pointer';
+          saveBtn.innerHTML = '<i class="fa-solid fa-check text-xs"></i>';
+
+          const cancelBtn = document.createElement('button');
+          cancelBtn.type = 'button';
+          cancelBtn.className = 'h-7 w-7 rounded-lg bg-slate-200 hover:bg-slate-300 text-slate-600 flex items-center justify-center transition-colors cursor-pointer';
+          cancelBtn.innerHTML = '<i class="fa-solid fa-xmark text-xs"></i>';
+
+          const doSave = () => {
+            const val = input.value.trim();
+            if (val && val !== cat) {
+              renameCategory(cat, val);
+            } else {
+              renderMultiCatChecklist();
+            }
+          };
+
+          saveBtn.onclick = (ev) => { ev.stopPropagation(); doSave(); };
+          cancelBtn.onclick = (ev) => { ev.stopPropagation(); renderMultiCatChecklist(); };
+          input.onkeydown = (ev) => {
+            if (ev.key === 'Enter') { ev.preventDefault(); doSave(); }
+            else if (ev.key === 'Escape') { renderMultiCatChecklist(); }
+          };
+
+          editWrap.appendChild(input);
+          editWrap.appendChild(saveBtn);
+          editWrap.appendChild(cancelBtn);
+          row.appendChild(editWrap);
+          input.focus();
+          input.select();
+        };
+        actionsDiv.appendChild(editCatBtn);
+
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.title = `Delete "${cat}"`;
+        delBtn.className = 'h-7 w-7 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 flex items-center justify-center transition-colors cursor-pointer';
+        delBtn.innerHTML = '<i class="fa-solid fa-trash-can text-xs"></i>';
+        delBtn.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          deleteCategoryWithUndo(cat);
+        };
+        actionsDiv.appendChild(delBtn);
+
+        row.appendChild(actionsDiv);
+        dom.multiCatCheckList.appendChild(row);
+      });
+    }
+
+    function renameCategory(oldName, newName) {
+      if (!newName || newName === oldName) return;
+
+      const catIdx = state.categories.indexOf(oldName);
+      if (catIdx !== -1) {
+        if (!state.categories.includes(newName)) {
+          state.categories[catIdx] = newName;
+        } else {
+          state.categories.splice(catIdx, 1);
+        }
+      }
+
+      state.vocabularies.forEach(v => {
+        if (v.category === oldName) v.category = newName;
+      });
+
+      if (state.activeCategory === oldName) state.activeCategory = newName;
+      const multiIdx = state.selectedMultiCats.indexOf(oldName);
+      if (multiIdx !== -1) state.selectedMultiCats[multiIdx] = newName;
+
+      renderCategories();
+      renderMultiCatChecklist();
+      renderLevelReviewModal();
+      renderManagerWordList();
+      renderCurrentCard(false);
+      persistState();
+      showToast(`Renamed "${oldName}" → "${newName}"`);
+    }
+
+    function deleteCategoryWithUndo(catName) {
+      const removedWords = state.vocabularies.filter(v => v.category === catName);
+      state.vocabularies = state.vocabularies.filter(v => v.category !== catName);
+      state.categories = state.categories.filter(c => c !== catName);
+
+      state.deletedHistory.push({
+        type: 'category',
+        category: catName,
+        words: removedWords
+      });
+
+      dom.undoActionBtn.classList.remove('hidden');
+      dom.undoActionBtn.classList.add('flex');
+
+      if (state.activeCategory === catName) state.activeCategory = 'all';
+      state.selectedMultiCats = state.selectedMultiCats.filter(c => c !== catName);
+
+      renderCategories();
+      renderMultiCatChecklist();
+      renderLevelReviewModal();
+      renderManagerWordList();
+      navigateNext();
+      persistState();
+
+      showToast(`Category "${catName}" deleted (${removedWords.length} words)`, true, () => {
+        executeUndo();
+      });
+    }
+
+    function deleteWordWithUndo(wordId) {
+      const wordIndex = state.vocabularies.findIndex(v => v.id === wordId);
+      if (wordIndex === -1) return;
+
+      const removed = state.vocabularies.splice(wordIndex, 1)[0];
+      state.deletedHistory.push({
+        type: 'word',
+        word: removed,
+        index: wordIndex
+      });
+
+      dom.undoActionBtn.classList.remove('hidden');
+      dom.undoActionBtn.classList.add('flex');
+
+      if (state.currentWordId === wordId) {
+        navigateNext();
+      }
+
+      renderCategories();
+      renderManagerWordList();
+      persistState();
+
+      showToast(`Deleted "${removed.thai}"`, true, () => {
+        executeUndo();
+      });
+    }
+
+    function executeUndo() {
+      if (state.deletedHistory.length === 0) {
+        showToast('Nothing to undo');
+        return;
+      }
+
+      const item = state.deletedHistory.pop();
+      if (item.type === 'category') {
+        if (!state.categories.includes(item.category)) {
+          state.categories.push(item.category);
+        }
+        state.vocabularies.push(...item.words);
+        showToast(`Restored category "${item.category}"`);
+      } else if (item.type === 'word') {
+        state.vocabularies.splice(item.index, 0, item.word);
+        state.currentWordId = item.word.id;
+        showToast(`Restored "${item.word.thai}"`);
+      }
+
+      if (state.deletedHistory.length === 0) {
+        dom.undoActionBtn.classList.add('hidden');
+        dom.undoActionBtn.classList.remove('flex');
+      }
+
+      renderCategories();
+      renderMultiCatChecklist();
+      renderCurrentCard(false);
+      renderLevelReviewModal();
+      renderManagerWordList();
+      persistState();
+    }
+
+    /* Modal Handlers */
+    function openEditWordModal(wordId) {
+      const word = state.vocabularies.find(v => v.id === wordId);
+      if (!word) return;
+
+      state.editingWordId = wordId;
+      state.editingWordLevel = word.level;
+
+      dom.editThaiWord.value = word.thai;
+      dom.editEngMeaning.value = word.meaning;
+      dom.editImageUrl.value = word.image || '';
+      dom.editNewCategory.value = '';
+
+      populateSelectOptions(dom.editCategorySelect, state.categories);
+      if (state.categories.includes(word.category)) {
+        dom.editCategorySelect.value = word.category;
+      }
+
+      updateEditModalLevelUI();
+      dom.editVocabModal.classList.remove('hidden');
+    }
+
+    function updateEditModalLevelUI() {
+      dom.editModalLevelButtons.forEach(btn => {
+        const lvlStr = btn.dataset.editLvl;
+        const btnLvl = lvlStr === 'none' ? null : parseInt(lvlStr, 10);
+        const config = LEVEL_CONFIG[btnLvl || 'none'];
+
+        if (state.editingWordLevel === btnLvl) {
+          btn.className = `edit-lvl-btn py-1.5 rounded-lg border text-[11px] font-bold transition-all ${config.activeClass}`;
+        } else {
+          btn.className = `edit-lvl-btn py-1.5 rounded-lg border text-[11px] font-bold transition-all ${config.inactiveClass}`;
+        }
+      });
+    }
+
+    function renderLevelReviewModal() {
+      const total = state.vocabularies.length;
+      document.getElementById('countBadgeAll').textContent = `(${total})`;
+      for (let i = 1; i <= 5; i++) {
+        const cnt = state.vocabularies.filter(v => v.level === i).length;
+        document.getElementById(`countBadge${i}`).textContent = `(${cnt})`;
+      }
+      const cntNone = state.vocabularies.filter(v => !v.level).length;
+      document.getElementById('countBadgeNone').textContent = `(${cntNone})`;
+
+      document.querySelectorAll('.level-tab-btn').forEach(btn => {
+        const tabKey = btn.dataset.levelTab;
+        const config = LEVEL_CONFIG[tabKey] || LEVEL_CONFIG.all;
+        if (state.levelReviewTab === tabKey) {
+          btn.className = `level-tab-btn py-1.5 px-1 rounded-xl text-[11px] font-black shadow-xs transition-all flex items-center justify-center gap-0.5 ${config.activeClass}`;
+        } else {
+          btn.className = `level-tab-btn py-1.5 px-1 rounded-xl text-[11px] font-bold transition-all flex items-center justify-center gap-0.5 ${config.inactiveClass}`;
+        }
+      });
+
+      const activeTab = state.levelReviewTab;
+      const catScope = dom.levelReviewCategorySelect.value;
+
+      let filtered = state.vocabularies;
+      if (activeTab !== 'all') {
+        if (activeTab === 'none') {
+          filtered = filtered.filter(v => !v.level);
+        } else {
+          filtered = filtered.filter(v => v.level === parseInt(activeTab, 10));
+        }
+      }
+      if (catScope !== 'all') {
+        filtered = filtered.filter(v => v.category === catScope);
+      }
+
+      dom.levelReviewWordList.innerHTML = '';
+      if (filtered.length === 0) {
+        dom.levelReviewWordList.innerHTML = '<div class="text-center py-6 text-slate-400 font-medium text-xs">No words in this level group</div>';
+        return;
+      }
+
+      filtered.forEach(item => {
+        const row = document.createElement('div');
+        row.className = 'p-2.5 rounded-2xl bg-slate-50/90 border border-slate-200 hover:border-slate-300 transition-all flex flex-col gap-2 shadow-2xs';
+
+        const topRow = document.createElement('div');
+        topRow.className = 'flex items-start justify-between gap-2';
+
+        const info = document.createElement('div');
+        info.className = 'flex flex-col min-w-0 flex-1';
+
+        const itemLvlConfig = LEVEL_CONFIG[item.level] || LEVEL_CONFIG.none;
+        info.innerHTML = `
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <span class="font-thaiLoop font-bold text-base text-slate-800">${item.thai}</span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full font-black ${itemLvlConfig.lightBg} ${itemLvlConfig.color} border ${itemLvlConfig.border} flex items-center gap-1">
+              ${itemLvlConfig.emoji} ${item.level ? `Level ${item.level}` : 'Unrated'}
+            </span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-semibold">${item.category || 'General'}</span>
+          </div>
+          <span class="text-xs text-slate-600 truncate mt-0.5">${item.meaning}</span>
+        `;
+
+        const topActions = document.createElement('div');
+        topActions.className = 'flex items-center gap-1 flex-shrink-0';
+
+        const speakBtn = document.createElement('button');
+        speakBtn.className = 'h-7 w-7 rounded-lg bg-white border border-slate-200 hover:bg-indigo-50 text-slate-500 hover:text-indigo-600 flex items-center justify-center transition-all shadow-2xs';
+        speakBtn.innerHTML = '<i class="fa-solid fa-volume-high text-[11px]"></i>';
+        speakBtn.onclick = () => speaker.speak(item.thai);
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'h-7 px-2 rounded-lg bg-white border border-slate-200 hover:bg-pink-50 hover:border-pink-300 text-slate-600 hover:text-pink-600 flex items-center gap-1 text-[11px] font-bold transition-all shadow-2xs';
+        editBtn.innerHTML = '<i class="fa-solid fa-pen text-[10px]"></i><span>Edit</span>';
+        editBtn.onclick = () => openEditWordModal(item.id);
+
+        topActions.appendChild(speakBtn);
+        topActions.appendChild(editBtn);
+        topRow.appendChild(info);
+        topRow.appendChild(topActions);
+        row.appendChild(topRow);
+
+        const levelDock = document.createElement('div');
+        levelDock.className = 'flex items-center justify-between gap-1 pt-1.5 border-t border-slate-200/70';
+
+        const dockLabel = document.createElement('span');
+        dockLabel.className = 'text-[9px] uppercase font-black text-slate-400 whitespace-nowrap mr-0.5';
+        dockLabel.textContent = 'Set Level:';
+        levelDock.appendChild(dockLabel);
+
+        const btnGroup = document.createElement('div');
+        btnGroup.className = 'flex items-center gap-1 flex-1 justify-end';
+
+        [1, 2, 3, 4, 5].forEach(lvl => {
+          const cfg = LEVEL_CONFIG[lvl];
+          const isSelected = item.level === lvl;
+          const b = document.createElement('button');
+          if (isSelected) {
+            b.className = `flex-1 h-7 rounded-lg text-[10px] font-black shadow-xs transition-all flex items-center justify-center gap-0.5 ${cfg.bg} text-white ring-2 ring-offset-1 ring-slate-400 scale-102`;
+          } else {
+            b.className = `flex-1 h-7 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-0.5 ${cfg.lightBg} ${cfg.color} border ${cfg.border} hover:brightness-95 active:scale-95`;
+          }
+          b.innerHTML = `<span>${cfg.emoji}</span><span>${lvl}</span>`;
+          b.onclick = (e) => {
+            e.stopPropagation();
+            updateWordLevel(item.id, lvl);
+          };
+          btnGroup.appendChild(b);
+        });
+
+        const clearBtn = document.createElement('button');
+        clearBtn.className = `px-2 h-7 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center ${!item.level ? 'bg-slate-200 text-slate-700' : 'bg-white text-slate-400 hover:text-rose-500 hover:bg-rose-50 border border-slate-200'} active:scale-95`;
+        clearBtn.innerHTML = '&times;';
+        clearBtn.title = 'Clear Level';
+        clearBtn.onclick = (e) => {
+          e.stopPropagation();
+          updateWordLevel(item.id, null);
+        };
+        btnGroup.appendChild(clearBtn);
+
+        levelDock.appendChild(btnGroup);
+        row.appendChild(levelDock);
+        dom.levelReviewWordList.appendChild(row);
+      });
+    }
+
+    function renderManagerWordList() {
+      const q = dom.managerSearchInput.value.toLowerCase().trim();
+      const cat = dom.managerCatFilter.value;
+
+      let list = state.vocabularies;
+      if (cat !== 'all') {
+        list = list.filter(v => v.category === cat);
+      }
+      if (q) {
+        list = list.filter(v =>
+          v.thai.toLowerCase().includes(q) ||
+          v.meaning.toLowerCase().includes(q)
+        );
+      }
+
+      dom.managerCountInfo.textContent = `Showing ${list.length} of ${state.vocabularies.length} words`;
+      dom.managerWordList.innerHTML = '';
+
+      if (list.length === 0) {
+        dom.managerWordList.innerHTML = '<div class="text-center py-6 text-slate-400 font-medium">No matching vocabulary found</div>';
+        return;
+      }
+
+      list.forEach(w => {
+        const row = document.createElement('div');
+        row.className = 'p-2.5 rounded-2xl bg-slate-50/90 border border-slate-200 flex flex-col gap-2 shadow-2xs';
+
+        const topRow = document.createElement('div');
+        topRow.className = 'flex items-start justify-between gap-2';
+
+        const wLvlConfig = LEVEL_CONFIG[w.level] || LEVEL_CONFIG.none;
+        topRow.innerHTML = `
+          <div class="flex flex-col min-w-0 pr-2">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="font-thaiLoop font-bold text-base text-slate-800">${w.thai}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full font-black ${wLvlConfig.lightBg} ${wLvlConfig.color} border ${wLvlConfig.border} flex items-center gap-1">
+                ${wLvlConfig.emoji} ${w.level ? `Level ${w.level}` : 'Unrated'}
+              </span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-700 font-semibold">${w.category || 'General'}</span>
+            </div>
+            <span class="text-xs text-slate-600 truncate mt-0.5">${w.meaning}</span>
+          </div>
+        `;
+
+        const actionCol = document.createElement('div');
+        actionCol.className = 'flex items-center gap-1 flex-shrink-0';
+
+        const speakBtn = document.createElement('button');
+        speakBtn.className = 'h-7 w-7 text-slate-500 hover:text-indigo-600 rounded-lg hover:bg-slate-200 transition-colors flex items-center justify-center';
+        speakBtn.innerHTML = '<i class="fa-solid fa-volume-high text-xs"></i>';
+        speakBtn.onclick = () => speaker.speak(w.thai);
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'h-7 px-2 text-slate-600 hover:text-pink-600 rounded-lg bg-white border border-slate-200 hover:border-pink-300 transition-colors flex items-center gap-1 text-[11px] font-bold shadow-2xs';
+        editBtn.innerHTML = '<i class="fa-solid fa-pen text-[10px]"></i><span>Edit</span>';
+        editBtn.onclick = () => openEditWordModal(w.id);
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'h-7 w-7 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-rose-50 transition-colors flex items-center justify-center';
+        delBtn.innerHTML = '<i class="fa-solid fa-trash-can text-xs"></i>';
+        delBtn.onclick = () => deleteWordWithUndo(w.id);
+
+        actionCol.appendChild(speakBtn);
+        actionCol.appendChild(editBtn);
+        actionCol.appendChild(delBtn);
+        topRow.appendChild(actionCol);
+        row.appendChild(topRow);
+
+        const levelDock = document.createElement('div');
+        levelDock.className = 'flex items-center justify-between gap-1 pt-1.5 border-t border-slate-200/70';
+
+        const dockLabel = document.createElement('span');
+        dockLabel.className = 'text-[9px] uppercase font-black text-slate-400 whitespace-nowrap mr-0.5';
+        dockLabel.textContent = 'Set Level:';
+        levelDock.appendChild(dockLabel);
+
+        const btnGroup = document.createElement('div');
+        btnGroup.className = 'flex items-center gap-1 flex-1 justify-end';
+
+        [1, 2, 3, 4, 5].forEach(lvl => {
+          const cfg = LEVEL_CONFIG[lvl];
+          const isSelected = w.level === lvl;
+          const b = document.createElement('button');
+          if (isSelected) {
+            b.className = `flex-1 h-6 sm:h-7 rounded-lg text-[10px] font-black shadow-xs transition-all flex items-center justify-center gap-0.5 ${cfg.bg} text-white ring-2 ring-offset-1 ring-slate-400 scale-102`;
+          } else {
+            b.className = `flex-1 h-6 sm:h-7 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-0.5 ${cfg.lightBg} ${cfg.color} border ${cfg.border} hover:brightness-95 active:scale-95`;
+          }
+          b.innerHTML = `<span>${cfg.emoji}</span><span>${lvl}</span>`;
+          b.onclick = (e) => {
+            e.stopPropagation();
+            updateWordLevel(w.id, lvl);
+          };
+          btnGroup.appendChild(b);
+        });
+
+        const clearBtn = document.createElement('button');
+        clearBtn.className = `px-2 h-6 sm:h-7 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center ${!w.level ? 'bg-slate-200 text-slate-700' : 'bg-white text-slate-400 hover:text-rose-500 hover:bg-rose-50 border border-slate-200'} active:scale-95`;
+        clearBtn.innerHTML = '&times;';
+        clearBtn.onclick = (e) => {
+          e.stopPropagation();
+          updateWordLevel(w.id, null);
+        };
+        btnGroup.appendChild(clearBtn);
+
+        levelDock.appendChild(btnGroup);
+        row.appendChild(levelDock);
+        dom.managerWordList.appendChild(row);
+      });
+    }
+
+    /* Bulk Smart Parser */
+    function parseBulkInput(rawText, defaultCat) {
+      const lines = rawText.split('\n');
+      const newEntries = [];
+      const thaiRegex = /[\u0E00-\u0E7F]/;
+
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (!trimmed) return;
+
+        let parts = [];
+        if (trimmed.includes('—')) parts = trimmed.split('—');
+        else if (trimmed.includes('-')) parts = trimmed.split('-');
+        else if (trimmed.includes(':')) parts = trimmed.split(':');
+        else if (trimmed.includes('\t')) parts = trimmed.split('\t');
+        else parts = trimmed.split(/\s{2,}/);
+
+        if (parts.length >= 2) {
+          const sideA = parts[0].trim();
+          const sideB = parts.slice(1).join(' ').trim();
+
+          let thai = '';
+          let meaning = '';
+
+          if (thaiRegex.test(sideA)) {
+            thai = sideA;
+            meaning = sideB;
+          } else {
+            thai = sideB;
+            meaning = sideA;
+          }
+
+          if (thai && meaning) {
+            newEntries.push({
+              id: 'vocab_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+              thai: thai,
+              meaning: meaning,
+              category: defaultCat,
+              level: null,
+              image: ''
+            });
+          }
+        }
+      });
+
+      return newEntries;
+    }
+
+    /* Storage Persistence Layer (Firebase Cloud Sync + LocalStorage Hybrid Fallback) */
+    async function initStorageSync() {
+      try {
+        dom.cloudStatusIndicator.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse"></span><span class="text-[9px] text-amber-500 font-medium">Connecting</span>';
+
+        // Check for runtime environment or production credentials
+        let config = null;
+        if (typeof __firebase_config !== 'undefined') {
+          config = JSON.parse(__firebase_config);
+        } else if (PRODUCTION_FIREBASE_CONFIG.apiKey && PRODUCTION_FIREBASE_CONFIG.projectId) {
+          config = PRODUCTION_FIREBASE_CONFIG;
+        }
+
+        if (!config) {
+          // Offline LocalStorage Mode
+          loadFromLocalStorage();
+          state.isConnecting = false;
+          dom.cloudStatusIndicator.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span class="text-[9px] text-emerald-600 font-semibold">Offline Ready</span>';
+          renderCategories();
+          renderCurrentCard(false);
+          return;
+        }
+
+        const app = initializeApp(config);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+
+        const user = auth.currentUser;
+        if (!user) {
+          loadFromLocalStorage();
+          state.isConnecting = false;
+          renderCategories();
+          renderCurrentCard(false);
+          return;
+        }
+
+        state.userId = user.uid;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : (config.projectId || 'thai-vocab-app');
+        state.firestoreDocRef = doc(db, 'artifacts', appId, 'users', state.userId, 'userData', 'profile');
+
+        dom.cloudStatusIndicator.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span class="text-[9px] text-emerald-600 font-semibold">Cloud Sync</span>';
+
+        onSnapshot(state.firestoreDocRef, (docSnap) => {
+          state.isConnecting = false;
+          dom.cloudStatusIndicator.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span class="text-[9px] text-emerald-600 font-semibold">Cloud Sync</span>';
+
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            if (data.vocabularies && Array.isArray(data.vocabularies)) state.vocabularies = data.vocabularies;
+            if (data.categories && Array.isArray(data.categories)) state.categories = data.categories;
+            if (data.visualsEnabled !== undefined) state.visualsEnabled = data.visualsEnabled;
+            if (data.defaultFace !== undefined) state.defaultFace = data.defaultFace;
+            if (data.voiceSpeed !== undefined) state.voiceSpeed = data.voiceSpeed;
+            if (data.isMuted !== undefined) state.isMuted = data.isMuted;
+            if (data.voicePreset !== undefined) state.voicePreset = data.voicePreset;
+
+            if (state.vocabularies.length > 0 && !state.currentWordId) {
+              state.currentWordId = state.vocabularies[0].id;
+              state.history = [state.currentWordId];
+              state.historyIndex = 0;
+            }
+
+            updateSettingsUI();
+            renderCategories();
+            renderCurrentCard(false);
+
+            if (!dom.levelReviewModal.classList.contains('hidden')) {
+              const rPos = dom.levelReviewWordList.scrollTop;
+              renderLevelReviewModal();
+              dom.levelReviewWordList.scrollTop = rPos;
+            }
+            if (!dom.vocabManagerModal.classList.contains('hidden')) {
+              const mPos = dom.managerWordList.scrollTop;
+              renderManagerWordList();
+              dom.managerWordList.scrollTop = mPos;
+            }
+          } else {
+            state.vocabularies = [];
+            state.categories = [];
+            renderCategories();
+            renderCurrentCard(false);
+            persistState();
+          }
+        }, (err) => {
+          console.warn('Firestore fallback to local storage:', err);
+          loadFromLocalStorage();
+          state.isConnecting = false;
+          dom.cloudStatusIndicator.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span class="text-[9px] text-emerald-600">Local Sync</span>';
+          renderCategories();
+          renderCurrentCard(false);
+        });
+
+      } catch (err) {
+        console.warn('Sync initialization fallback:', err);
+        loadFromLocalStorage();
+        state.isConnecting = false;
+        dom.cloudStatusIndicator.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span class="text-[9px] text-emerald-600">Local Sync</span>';
+        renderCategories();
+        renderCurrentCard(false);
+      }
+    }
+
+    function loadFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem('thai_vocab_data');
+        if (raw) {
+          const data = JSON.parse(raw);
+          if (data.vocabularies) state.vocabularies = data.vocabularies;
+          if (data.categories) state.categories = data.categories;
+          if (data.visualsEnabled !== undefined) state.visualsEnabled = data.visualsEnabled;
+          if (data.defaultFace !== undefined) state.defaultFace = data.defaultFace;
+          if (data.voiceSpeed !== undefined) state.voiceSpeed = data.voiceSpeed;
+          if (data.isMuted !== undefined) state.isMuted = data.isMuted;
+          if (data.voicePreset !== undefined) state.voicePreset = data.voicePreset;
+
+          if (state.vocabularies.length > 0 && !state.currentWordId) {
+            state.currentWordId = state.vocabularies[0].id;
+            state.history = [state.currentWordId];
+            state.historyIndex = 0;
+          }
+        }
+      } catch (e) {
+        console.warn('Local storage read error:', e);
+      }
+    }
+
+    let saveTimer = null;
+    function persistState() {
+      // Local backup immediate
+      try {
+        localStorage.setItem('thai_vocab_data', JSON.stringify({
+          vocabularies: state.vocabularies,
+          categories: state.categories,
+          visualsEnabled: state.visualsEnabled,
+          defaultFace: state.defaultFace,
+          voiceSpeed: state.voiceSpeed,
+          isMuted: state.isMuted,
+          voicePreset: state.voicePreset
+        }));
+      } catch (e) {}
+
+      // Cloud debounce save
+      if (!state.firestoreDocRef) return;
+      if (saveTimer) clearTimeout(saveTimer);
+      saveTimer = setTimeout(async () => {
+        try {
+          await setDoc(state.firestoreDocRef, {
+            vocabularies: state.vocabularies,
+            categories: state.categories,
+            activeCategory: state.activeCategory,
+            selectedMultiCats: state.selectedMultiCats,
+            visualsEnabled: state.visualsEnabled,
+            defaultFace: state.defaultFace,
+            voiceSpeed: state.voiceSpeed,
+            isMuted: state.isMuted,
+            voicePreset: state.voicePreset,
+            updatedAt: Date.now()
+          }, { merge: true });
+        } catch (e) {
+          console.warn('Cloud sync error:', e);
+        }
+      }, 300);
+    }
+
+    function updateSettingsUI() {
+      if (state.visualsEnabled) {
+        dom.visualSlashLine.classList.add('hidden');
+      } else {
+        dom.visualSlashLine.classList.remove('hidden');
+      }
+
+      dom.defaultFaceText.textContent = state.defaultFace === 'front' ? 'Front' : 'Back';
+
+      dom.speechRateSlider.value = state.voiceSpeed;
+      dom.popoverSpeedDisplay.textContent = `${state.voiceSpeed.toFixed(1)}x`;
+      dom.voiceSpeedBadge.textContent = state.isMuted ? 'Mute' : `${state.voiceSpeed.toFixed(1)}x`;
+
+      if (state.isMuted) {
+        dom.voiceSpeedBadge.className = 'text-[10px] font-bold text-rose-500';
+        dom.voiceHeaderIcon.className = 'fa-solid fa-volume-xmark text-[11px] text-rose-500';
+        dom.muteToggleBtn.className = 'px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all bg-rose-500 text-white';
+        dom.muteToggleBtn.innerHTML = '<i class="fa-solid fa-volume-xmark mr-1"></i> Muted';
+      } else {
+        dom.voiceSpeedBadge.className = 'text-[10px] font-bold text-slate-600';
+        dom.voiceHeaderIcon.className = 'fa-solid fa-volume-high text-[11px] text-indigo-500';
+        dom.muteToggleBtn.className = 'px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-600';
+        dom.muteToggleBtn.innerHTML = '<i class="fa-solid fa-volume-high mr-1"></i> Sound On';
+      }
+
+      document.querySelectorAll('.voice-preset-btn').forEach(btn => {
+        if (btn.dataset.voice === state.voicePreset) {
+          btn.className = 'voice-preset-btn px-2 py-1 rounded-lg border text-[11px] font-medium bg-pink-50 border-pink-300 text-pink-700 text-left shadow-xs';
+        } else {
+          btn.className = 'voice-preset-btn px-2 py-1 rounded-lg border text-[11px] font-medium bg-slate-50 border-slate-200 text-slate-600 text-left';
+        }
+      });
+    }
+
+    /* Event Listeners Registration */
+    function bindEvents() {
+      dom.flashcardInner.addEventListener('click', (e) => {
+        if (e.target.closest('#editPhotoDirectBtn')) return;
+        flipCard();
+      });
+
+      dom.navNextBtn.onclick = () => navigateNext();
+      dom.navPrevBtn.onclick = () => navigatePrev();
+      dom.navSpeakBtn.onclick = () => {
+        const word = getCurrentWord();
+        if (word) speaker.speak(word.thai);
+      };
+
+      dom.rateButtons.forEach(btn => {
+        btn.onclick = () => {
+          const lvl = parseInt(btn.dataset.level, 10);
+          setWordLevel(lvl);
+        };
+      });
+
+      dom.voiceBtn.onclick = (e) => {
+        e.stopPropagation();
+        dom.voicePopover.classList.toggle('hidden');
+      };
+      document.addEventListener('click', (e) => {
+        if (!dom.voicePopover.contains(e.target) && !dom.voiceBtn.contains(e.target)) {
+          dom.voicePopover.classList.add('hidden');
+        }
+      });
+
+      dom.muteToggleBtn.onclick = () => {
+        state.isMuted = !state.isMuted;
+        updateSettingsUI();
+        persistState();
+      };
+
+      dom.speechRateSlider.oninput = (e) => {
+        state.voiceSpeed = parseFloat(e.target.value);
+        updateSettingsUI();
+      };
+      dom.speechRateSlider.onchange = () => persistState();
+
+      document.querySelectorAll('.quick-rate-btn').forEach(btn => {
+        btn.onclick = () => {
+          state.voiceSpeed = parseFloat(btn.dataset.rate);
+          updateSettingsUI();
+          persistState();
+        };
+      });
+
+      document.querySelectorAll('.voice-preset-btn').forEach(btn => {
+        btn.onclick = () => {
+          state.voicePreset = btn.dataset.voice;
+          updateSettingsUI();
+          persistState();
+          const word = getCurrentWord();
+          if (word) speaker.speak(word.thai);
+        };
+      });
+
+      dom.visualToggleBtn.onclick = () => {
+        state.visualsEnabled = !state.visualsEnabled;
+        updateSettingsUI();
+        renderCurrentCard(false);
+        persistState();
+      };
+
+      dom.defaultFaceBtn.onclick = () => {
+        state.defaultFace = state.defaultFace === 'front' ? 'back' : 'front';
+        updateSettingsUI();
+        renderCurrentCard(false);
+        persistState();
+        showToast(`Default starting face: ${state.defaultFace.toUpperCase()}`);
+      };
+
+      dom.undoActionBtn.onclick = () => executeUndo();
+
+      window.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+          e.preventDefault();
+          executeUndo();
+        }
+        if (e.key === 'ArrowRight' || e.key === ' ') {
+          if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+            navigateNext();
+          }
+        }
+        if (e.key === 'ArrowLeft') {
+          if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+            navigatePrev();
+          }
+        }
+      });
+
+      dom.multiCatFilterBtn.onclick = () => {
+        renderMultiCatChecklist();
+        dom.multiCatModal.classList.remove('hidden');
+      };
+
+      dom.selectAllCatsBtn.onclick = () => {
+        dom.multiCatCheckList.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+      };
+      dom.clearAllCatsBtn.onclick = () => {
+        dom.multiCatCheckList.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+      };
+      dom.applyMultiCatBtn.onclick = () => {
+        const checked = [];
+        dom.multiCatCheckList.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+          checked.push(cb.value);
+        });
+        state.selectedMultiCats = checked;
+        if (checked.length > 0) state.activeCategory = 'all';
+        updateCategoryFilterUI();
+        dom.multiCatModal.classList.add('hidden');
+        navigateNext();
+        persistState();
+      };
+
+      dom.levelReviewDockBtn.onclick = () => {
+        renderLevelReviewModal();
+        dom.levelReviewModal.classList.remove('hidden');
+      };
+
+      document.querySelectorAll('.level-tab-btn').forEach(btn => {
+        btn.onclick = () => {
+          state.levelReviewTab = btn.dataset.levelTab || 'all';
+          renderLevelReviewModal();
+        };
+      });
+
+      dom.levelReviewCategorySelect.onchange = () => renderLevelReviewModal();
+
+      dom.lockLevelReviewPracticeBtn.onclick = () => {
+        const activeTab = state.levelReviewTab;
+        state.reviewLevelFilter = activeTab;
+        const catScope = dom.levelReviewCategorySelect.value;
+        if (catScope !== 'all') {
+          state.activeCategory = catScope;
+          state.selectedMultiCats = [];
+        }
+
+        const lvlCfg = LEVEL_CONFIG[activeTab] || LEVEL_CONFIG.all;
+        if (activeTab === 'all') {
+          dom.activeReviewLevelBadge.textContent = 'All';
+          dom.levelReviewDockBtn.className = 'h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-95 text-slate-700 font-bold text-xs flex items-center gap-1 transition-all flex-shrink-0';
+        } else if (activeTab === 'none') {
+          dom.activeReviewLevelBadge.textContent = 'None';
+          dom.levelReviewDockBtn.className = 'h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1 transition-all flex-shrink-0';
+        } else {
+          dom.activeReviewLevelBadge.textContent = `L${activeTab} ${lvlCfg.emoji}`;
+          dom.levelReviewDockBtn.className = `h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl ${lvlCfg.lightBg} border ${lvlCfg.border} ${lvlCfg.color} font-black text-xs flex items-center gap-1 transition-all flex-shrink-0`;
+        }
+
+        updateCategoryFilterUI();
+        dom.levelReviewModal.classList.add('hidden');
+        navigateNext();
+        showToast(`Practice locked to: ${dom.activeReviewLevelBadge.textContent}`);
+      };
+
+      dom.editModalLevelButtons.forEach(btn => {
+        btn.onclick = () => {
+          const val = btn.dataset.editLvl;
+          state.editingWordLevel = val === 'none' ? null : parseInt(val, 10);
+          updateEditModalLevelUI();
+        };
+      });
+
+      dom.saveEditVocabBtn.onclick = () => {
+        if (!state.editingWordId) return;
+        const word = state.vocabularies.find(v => v.id === state.editingWordId);
+        if (!word) return;
+
+        const thai = dom.editThaiWord.value.trim();
+        const meaning = dom.editEngMeaning.value.trim();
+        let cat = dom.editNewCategory.value.trim() || dom.editCategorySelect.value || 'General';
+
+        if (!thai || !meaning) {
+          showToast('Thai and meaning cannot be empty');
+          return;
+        }
+
+        word.thai = thai;
+        word.meaning = meaning;
+        word.category = cat;
+        word.level = state.editingWordLevel;
+        word.image = dom.editImageUrl.value.trim();
+
+        if (cat && !state.categories.includes(cat)) {
+          state.categories.push(cat);
+        }
+
+        renderCategories();
+        renderCurrentCard(false);
+        renderLevelReviewModal();
+        renderManagerWordList();
+        persistState();
+
+        dom.editVocabModal.classList.add('hidden');
+        showToast(`Updated "${word.thai}" successfully!`);
+      };
+
+      const triggerCurrentCardEdit = (e) => {
+        e.stopPropagation();
+        if (state.currentWordId) {
+          openEditWordModal(state.currentWordId);
+        }
+      };
+
+      dom.cardDirectEditBtnFront.onclick = triggerCurrentCardEdit;
+      dom.cardDirectEditBtnBack.onclick = triggerCurrentCardEdit;
+      dom.frontMasteryBadge.onclick = triggerCurrentCardEdit;
+      dom.backMasteryBadge.onclick = triggerCurrentCardEdit;
+
+      dom.openAddBtn.onclick = () => {
+        dom.inputThaiWord.value = '';
+        dom.inputEngMeaning.value = '';
+        dom.inputImageUrl.value = '';
+        dom.inputNewCategory.value = '';
+        dom.bulkPasteTextarea.value = '';
+        dom.bulkNewCategory.value = '';
+        dom.addVocabModal.classList.remove('hidden');
+      };
+
+      dom.tabSingleAdd.onclick = () => {
+        dom.tabSingleAdd.className = 'text-xs font-black text-pink-600 border-b-2 border-pink-500 pb-1';
+        dom.tabBulkAdd.className = 'text-xs font-bold text-slate-400 hover:text-slate-600 pb-1';
+        dom.singleAddView.classList.remove('hidden');
+        dom.bulkAddView.classList.add('hidden');
+      };
+
+      dom.tabBulkAdd.onclick = () => {
+        dom.tabBulkAdd.className = 'text-xs font-black text-pink-600 border-b-2 border-pink-500 pb-1';
+        dom.tabSingleAdd.className = 'text-xs font-bold text-slate-400 hover:text-slate-600 pb-1';
+        dom.bulkAddView.classList.remove('hidden');
+        dom.singleAddView.classList.add('hidden');
+      };
+
+      dom.saveVocabBtn.onclick = () => {
+        const isSingle = !dom.singleAddView.classList.contains('hidden');
+        if (isSingle) {
+          const thai = dom.inputThaiWord.value.trim();
+          const meaning = dom.inputEngMeaning.value.trim();
+          const imgUrl = dom.inputImageUrl.value.trim();
+          let category = dom.inputNewCategory.value.trim() || dom.inputCategorySelect.value || 'General';
+
+          if (!thai || !meaning) {
+            showToast('Please enter both Thai word and meaning');
+            return;
+          }
+
+          const newWord = {
+            id: 'vocab_' + Date.now(),
+            thai,
+            meaning,
+            category,
+            level: null,
+            image: imgUrl
+          };
+
+          state.vocabularies.unshift(newWord);
+          state.currentWordId = newWord.id;
+          renderCategories();
+          renderCurrentCard(true);
+          persistState();
+          dom.addVocabModal.classList.add('hidden');
+          showToast(`Added "${thai}"`);
+        } else {
+          const text = dom.bulkPasteTextarea.value;
+          let defaultCat = dom.bulkNewCategory.value.trim() || dom.bulkCategorySelect.value || 'General';
+          if (defaultCat && !state.categories.includes(defaultCat)) {
+            state.categories.push(defaultCat);
+          }
+          const entries = parseBulkInput(text, defaultCat);
+
+          if (entries.length === 0) {
+            showToast('No valid pairs found. Please format like: สวัสดี — hello');
+            return;
+          }
+
+          state.vocabularies.unshift(...entries);
+          state.currentWordId = entries[0].id;
+          renderCategories();
+          renderCurrentCard(true);
+          persistState();
+          dom.addVocabModal.classList.add('hidden');
+          showToast(`Added ${entries.length} vocabulary words!`);
+        }
+      };
+
+      dom.editPhotoDirectBtn.onclick = (e) => {
+        e.stopPropagation();
+        const word = getCurrentWord();
+        dom.editPhotoInputUrl.value = word?.image || '';
+        dom.photoEditModal.classList.remove('hidden');
+      };
+
+      dom.savePhotoUrlBtn.onclick = () => {
+        const word = getCurrentWord();
+        if (word) {
+          word.image = dom.editPhotoInputUrl.value.trim();
+          renderCurrentCard(false);
+          persistState();
+          dom.photoEditModal.classList.add('hidden');
+          showToast('Updated visual URL');
+        }
+      };
+
+      dom.openManagerBtn.onclick = () => {
+        renderManagerWordList();
+        dom.vocabManagerModal.classList.remove('hidden');
+      };
+      dom.managerSearchInput.oninput = () => renderManagerWordList();
+      dom.managerCatFilter.onchange = () => renderManagerWordList();
+
+      document.querySelectorAll('.close-modal-btn').forEach(btn => {
+        btn.onclick = () => {
+          const modalId = btn.dataset.modal;
+          document.getElementById(modalId)?.classList.add('hidden');
+        };
+      });
+    }
+
+    /* Bootstrapper */
+    window.addEventListener('DOMContentLoaded', async () => {
+      bindEvents();
+      updateSettingsUI();
+      renderCategories();
+      renderCurrentCard(false);
+      await initStorageSync();
+    });
+  </script>
+</body>
+</html>
